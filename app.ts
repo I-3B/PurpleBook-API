@@ -1,21 +1,27 @@
 require("dotenv").config();
 require("./src/configs/mongoConfig");
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { Application, NextFunction, Request, Response } from "express";
 import createError from "http-errors";
+import logger from "morgan";
 import passport from "passport";
 import indexRouter from "./src/routes/indexRouter";
 import FacebookStrategy from "./src/strategies/FacebookTokenStrategy";
 import jwtStrategy from "./src/strategies/jwtStrategy";
+
 const app: Application = express();
 const port = 3000;
 
 passport.use(jwtStrategy);
 passport.use(FacebookStrategy);
 // Body parsing Middleware
+
 app.use(cors());
+app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 app.use(passport.initialize());
 app.use("/", indexRouter);
 app.use((req, res, next) => {

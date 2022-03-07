@@ -14,7 +14,7 @@ const authController = {
         async (req: Request, res: Response, next: NextFunction) => {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
-                res.status(400).json({
+                return res.status(400).json({
                     status: true,
                     message: "login failed",
                     errors: [...errors.array()],
@@ -45,7 +45,7 @@ const authController = {
                                     token,
                                 });
                             } else {
-                                res.status(400).json({
+                                return res.status(400).json({
                                     status: false,
                                     message: "Wrong password",
                                 });
@@ -53,7 +53,7 @@ const authController = {
                         }
                     );
                 } else {
-                    res.status(404).json({
+                    return res.status(404).json({
                         status: false,
                         message: "user not found",
                     });

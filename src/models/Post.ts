@@ -5,5 +5,6 @@ const Post = new Schema({
     likes: [{ type: Schema.Types.ObjectId, ref: "User" }],
     comments: [{ type: Schema.Types.ObjectId, ref: "Comment" }],
     content: { type: String, required: true },
+    image: { data: Buffer, contentType: String },
 });
 export default mongoose.model("Post", Post);
