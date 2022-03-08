@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import { body, validationResult } from "express-validator";
 import jwt from "jsonwebtoken";
 import User from "../models/User";
+import isEmailUsed from "../utils/isEmailUsed";
 const authController = {
     login: [
         body("email")
@@ -15,7 +16,7 @@ const authController = {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
                 return res.status(400).json({
-                    status: true,
+                    statusBool: true,
                     message: "login failed",
                     errors: [...errors.array()],
                 });
@@ -39,14 +40,14 @@ const authController = {
                                     }
                                 );
                                 return res.status(200).json({
-                                    status: true,
+                                    statusBool: true,
                                     message: "Auth Passed",
-                                    userID: user._id,
+                                    userId: user._id,
                                     token,
                                 });
                             } else {
                                 return res.status(400).json({
-                                    status: false,
+                                    statusBool: false,
                                     message: "Wrong password",
                                 });
                             }
@@ -54,7 +55,7 @@ const authController = {
                     );
                 } else {
                     return res.status(404).json({
-                        status: false,
+                        statusBool: false,
                         message: "user not found",
                     });
                 }
@@ -70,9 +71,9 @@ const authController = {
             .trim()
             .matches("^[a-zA-Z]+$")
             .withMessage("First name can only contain A-Z, a-z")
-            .isLength({ min: 1, max: 15 })
+            .isLength({ min: 1, max: 20 })
             .withMessage(
-                "First name cannot be empty or more than 15 characters."
+                "First name cannot be empty or more than 20 characters."
             )
             .escape(),
         body("lastName")
@@ -80,9 +81,9 @@ const authController = {
             .trim()
             .matches("^[a-zA-Z]+$")
             .withMessage("Last name can only contain A-Z, a-z")
-            .isLength({ min: 1, max: 15 })
+            .isLength({ min: 1, max: 20 })
             .withMessage(
-                "Last name cannot be empty or more than 15 characters."
+                "Last name cannot be empty or more than 20 characters."
             )
             .escape(),
         body("password")
@@ -106,7 +107,7 @@ const authController = {
                 : { buffer: "", mimetype: "" };
             if (!errors.isEmpty()) {
                 return res.status(400).json({
-                    status: false,
+                    statusBool: false,
                     message: "signup failed",
                     errors: [...errors.array()],
                 });
@@ -114,7 +115,7 @@ const authController = {
                 const emailUsed = await isEmailUsed(req.body.email);
                 if (emailUsed) {
                     return res.status(400).json({
-                        status: false,
+                        statusBool: false,
                         message: "signup failed",
                         errors: [
                             {
@@ -145,8 +146,9 @@ const authController = {
                             });
                             if (user)
                                 return res.status(200).json({
-                                    status: true,
+                                    statusBool: true,
                                     message: "signup succeed",
+                                    userId: user._id.toString(),
                                 });
                         }
                     );
@@ -156,8 +158,4 @@ const authController = {
     ],
 };
 
-const isEmailUsed = async (email: String) => {
-    const found = await User.findOne({ email });
-    return !!found;
-};
 export default authController;
