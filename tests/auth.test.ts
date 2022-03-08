@@ -1,41 +1,22 @@
-import request from "supertest";
-import init from "../src/configs/mongoConfigTesting";
-import app from "./app";
-beforeAll(async () => await init());
-describe("auth route works", () => {
-    const user = {
-        firstName: "first",
-        lastName: "last",
-        email: "example@email.com",
-        password: "12345678",
-    };
+import { dbConnect, dbDisconnect } from "../src/configs/mongoConfigTesting";
+import { login, signup } from "./auth.utils";
+beforeAll(async () => await dbConnect());
+afterAll(async () => await dbDisconnect());
+
+describe("auth route", () => {
     test("new user signup should work", async () => {
-        await request(app)
-            .post("/api/auth/signup")
-            .field("firstName", user.firstName)
-            .field("lastName", user.lastName)
-            .field("email", user.email)
-            .field("password", user.password)
-            .expect(200);
+        await signup("User", 200);
     });
     test("should reject duplicate email", async () => {
-        await request(app)
-            .post("/api/auth/signup")
-            .field("firstName", user.firstName)
-            .field("lastName", user.lastName)
-            .field("email", user.email)
-            .field("password", user.password)
-            .expect(400);
+        await signup("User", 400);
     });
     test("login should work", async () => {
-        await request(app)
-            .post("/api/auth/login")
-            .send({ email: user.email, password: user.password })
-            .expect(200);
+        await login("User", 200);
     });
-    test("login should fail", async () => {
-        await request(app)
-            .post("/api/auth/login")
-            .send({ email: user.email, password: "wrong password" });
+    test("login should fail if user is not signed up", async () => {
+        await login("UserNotSignedUp", 404);
+    });
+    test("login should fail if password is wrong", async () => {
+        await login("User", 400, "Wrong password");
     });
 });

@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const { MongoMemoryServer } = require("mongodb-memory-server");
 
-async function initializeMongoServer() {
+const dbConnect = async () => {
     const mongoServer = await MongoMemoryServer.create();
     const mongoUri = mongoServer.getUri();
 
@@ -18,6 +18,9 @@ async function initializeMongoServer() {
     mongoose.connection.once("open", () => {
         console.log(`MongoDB successfully connected to ${mongoUri}`);
     });
-}
-
-export default initializeMongoServer;
+};
+const dbDisconnect = async () => {
+    await mongoose.connection.dropDatabase();
+    await mongoose.connection.close();
+};
+export { dbConnect, dbDisconnect };
