@@ -16,7 +16,7 @@ const User = new Schema({
     friends: [{ type: Schema.Types.ObjectId, ref: "User" }],
     friendRequests: [
         {
-            userID: { type: Schema.Types.ObjectId, ref: "User" },
+            userId: { type: Schema.Types.ObjectId, ref: "User" },
             viewed: Boolean,
         },
     ],

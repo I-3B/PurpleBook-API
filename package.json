@@ -5,7 +5,7 @@
     "main": "app.js",
     "scripts": {
         "start": "ts-node-dev ./app.ts",
-        "test": "jest --clearCache;jest --watchAll  --detectOpenHandles --runInBand "
+        "test": "jest --detectOpenHandles -e --watchAll "
     },
     "author": "",
     "license": "ISC",

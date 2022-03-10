@@ -16,7 +16,7 @@ const dbConnect = async () => {
     });
 
     mongoose.connection.once("open", () => {
-        console.log(`MongoDB successfully connected to ${mongoUri}`);
+        // console.log(`MongoDB successfully connected to ${mongoUri}`);
     });
 };
 const dbDisconnect = async () => {
