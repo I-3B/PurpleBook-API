@@ -69,8 +69,8 @@ const authController = {
         body("firstName")
             .exists()
             .trim()
-            .matches("^[a-zA-Z]+$")
-            .withMessage("First name can only contain A-Z, a-z")
+            .isAlpha()
+            .withMessage("First name can only be alphabetic.")
             .isLength({ min: 1, max: 20 })
             .withMessage(
                 "First name cannot be empty or more than 20 characters."
@@ -79,8 +79,8 @@ const authController = {
         body("lastName")
             .exists()
             .trim()
-            .matches("^[a-zA-Z]+$")
-            .withMessage("Last name can only contain A-Z, a-z")
+            .isAlpha()
+            .withMessage("Last name can only be alphabetic.")
             .isLength({ min: 1, max: 20 })
             .withMessage(
                 "Last name cannot be empty or more than 20 characters."
