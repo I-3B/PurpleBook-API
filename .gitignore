@@ -5,3 +5,4 @@ mongoDev.sh
 image.drawio
 image.png
 coverage/
+.vscode/

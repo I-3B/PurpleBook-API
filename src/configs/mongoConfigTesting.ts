@@ -19,8 +19,11 @@ const dbConnect = async () => {
         // console.log(`MongoDB successfully connected to ${mongoUri}`);
     });
 };
+const clearDB = async ()=>{
+    await mongoose.connection.dropDatabase()
+}
 const dbDisconnect = async () => {
     await mongoose.connection.dropDatabase();
     await mongoose.connection.close();
 };
-export { dbConnect, dbDisconnect };
+export { dbConnect, clearDB,dbDisconnect };
