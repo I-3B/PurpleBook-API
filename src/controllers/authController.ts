@@ -23,7 +23,7 @@ const authController = {
             } else {
                 const user = await User.findOne({
                     email: req.body.email,
-                }).catch((err) => next(err));
+                })
                 if (user) {
                     bcrypt.compare(
                         req.body.password,
@@ -141,9 +141,7 @@ const authController = {
                                     data: profilePicture.buffer,
                                     contentType: profilePicture.mimetype,
                                 },
-                            }).catch((err: any) => {
-                                next(err);
-                            });
+                            })
                             if (user)
                                 return res.status(200).json({
                                     statusBool: true,

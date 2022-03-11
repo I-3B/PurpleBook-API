@@ -1,4 +1,5 @@
 require("dotenv").config();
+require("express-async-errors");
 require("./src/configs/mongoConfig");
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -29,21 +30,14 @@ app.use((req, res, next) => {
 });
 
 // error handler
-app.use(
-    (
-        err: { message: any; status: any },
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ) => {
-        // set locals, only providing error in development
-        res.locals.message = err.message;
-        res.locals.error = req.app.get("env") === "development" ? err : {};
+app.use((err: { message: any; status: any }, req: Request, res: Response, next: NextFunction) => {
+    // set locals, only providing error in development
+    res.locals.message = err.message;
+    res.locals.error = req.app.get("env") === "development" ? err : {};
 
-        res.status(err.status || 500);
-        res.json({ statusBool: false, ...err });
-    }
-);
+    res.status(err.status || 500);
+    res.json({ statusBool: false, ...err });
+});
 try {
     app.listen(port, (): void => {
         console.log(`Connected successfully on port ${port}`);
