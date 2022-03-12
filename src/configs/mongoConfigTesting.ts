@@ -1,8 +1,8 @@
-const mongoose = require("mongoose");
-const { MongoMemoryServer } = require("mongodb-memory-server");
+import { MongoMemoryReplSet } from "mongodb-memory-server";
+import mongoose from "mongoose";
 
 const dbConnect = async () => {
-    const mongoServer = await MongoMemoryServer.create();
+    const mongoServer = await MongoMemoryReplSet.create();
     const mongoUri = mongoServer.getUri();
 
     mongoose.connect(mongoUri);
@@ -19,11 +19,11 @@ const dbConnect = async () => {
         // console.log(`MongoDB successfully connected to ${mongoUri}`);
     });
 };
-const clearDB = async ()=>{
-    await mongoose.connection.dropDatabase()
-}
+const clearDB = async () => {
+    await mongoose.connection.dropDatabase();
+};
 const dbDisconnect = async () => {
     await mongoose.connection.dropDatabase();
     await mongoose.connection.close();
 };
-export { dbConnect, clearDB,dbDisconnect };
+export { dbConnect, clearDB, dbDisconnect };
