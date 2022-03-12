@@ -1,10 +1,15 @@
 import express from "express";
 import multer from "multer";
 import userController from "../controllers/userController";
-import authorizeUserRoute from "../utils/authorizeUserRoute";
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 const upload = multer();
-
-router.get("/:id", authorizeUserRoute, userController.getUser);
-router.put("/:id", authorizeUserRoute, upload.any(), userController.editUser);
+router.get("/", userController.getUser);
+router.put("/", upload.any(), userController.editUser);
+router.delete("/", userController.deleteUser);
+router.get("/friendRequests", userController.getFriendRequests);
+router.post("/friendRequests", userController.addFriendRequest);
+router.put("/friendRequests", userController.setFriendRequestsAsViewed);
+router.get("/friends", userController.getFriends);
+router.delete("/friends/:friendId", userController.deleteFriend);
+router.post("/friends/:friendId", userController.acceptFriendRequest);
 export default router;
