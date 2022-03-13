@@ -22,19 +22,19 @@ const deleteUser = (userId: String, token: String, status: Number) => {
 };
 const addFriendRequest = (userId: String, token: String, status: Number) => {
     return request(app)
-        .post(`/api/users/${userId}/friend-requests`)
+        .post(`/api/users/${userId}/friendRequests`)
         .set("Authorization", `Bearer ${token}`)
         .expect(status);
 };
 const getFriendRequests = (userId: String, token: String, status: Number) => {
     return request(app)
-        .get(`/api/users/${userId}/friend-requests`)
+        .get(`/api/users/${userId}/friendRequests`)
         .set("Authorization", `Bearer ${token}`)
         .expect(status);
 };
 const setFriendRequestsAsViewed = (userId: String, token: String, status: Number) => {
     return request(app)
-        .put(`/api/users/${userId}/friend-requests`)
+        .put(`/api/users/${userId}/friendRequests`)
         .set("Authorization", `Bearer ${token}`)
         .expect(status);
 };
