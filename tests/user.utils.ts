@@ -8,7 +8,7 @@ const getUser = (userId: String, token: String, status: Number) => {
 };
 const editUser = (edit: String, userId: String, token: String, status: Number) => {
     return request(app)
-        .put(`/api/users/${userId}`)
+        .patch(`/api/users/${userId}`)
         .set("Authorization", `Bearer ${token}`)
         .field("firstName", `${edit}`)
         .field("lastName", `${edit}`)
@@ -34,7 +34,7 @@ const getFriendRequests = (userId: String, token: String, status: Number) => {
 };
 const setFriendRequestsAsViewed = (userId: String, token: String, status: Number) => {
     return request(app)
-        .put(`/api/users/${userId}/friend_requests`)
+        .patch(`/api/users/${userId}/friend_requests`)
         .set("Authorization", `Bearer ${token}`)
         .expect(status);
 };
