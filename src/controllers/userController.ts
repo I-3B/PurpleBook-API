@@ -7,7 +7,7 @@ const userController = {
     //else it will send the profile without sensitive data
     getUser: async (req: Request, res: Response) => {
         let user;
-        if (req.user?.isAuthorized) {
+        if (req.user.userRouteAuthorized) {
             user = await User.findById(req.params.userId, {
                 password: 0,
             });
@@ -15,7 +15,7 @@ const userController = {
             user = await User.findById(req.params.userId, {
                 firstName: 1,
                 lastName: 1,
-                profilePicture: 1,
+                imageMini: 1,
                 posts: 1,
                 friends: 1,
             });
@@ -43,14 +43,14 @@ const userController = {
             .withMessage("Last name cannot be empty or more than 20 characters.")
             .escape(),
         async (req: Request, res: Response) => {
-            if (!req.user?.isAuthorized)
+            if (!req.user.userRouteAuthorized)
                 return res.status(403).json({
                     statusBool: false,
                     message: "You are not authorized to edit this user",
                 });
             const errors = validationResult(req);
             const files = req.files as Express.Multer.File[];
-            const profilePicture = files[0] ? files[0] : { buffer: "", mimetype: "" };
+            const imageMini = files[0] ? files[0] : { buffer: "", mimetype: "" };
             if (!errors.isEmpty()) {
                 return res.status(400).json({
                     statusBool: false,
@@ -63,9 +63,9 @@ const userController = {
                     {
                         firstName: req.body.firstName,
                         lastName: req.body.lastName,
-                        profilePicture: {
-                            data: profilePicture.buffer,
-                            contentType: profilePicture.mimetype,
+                        imageMini: {
+                            data: imageMini.buffer,
+                            contentType: imageMini.mimetype,
                         },
                     },
                     {
@@ -73,7 +73,7 @@ const userController = {
                         fields: {
                             firstName: 1,
                             lastName: 1,
-                            profilePicture: 1,
+                            imageMini: 1,
                         },
                     }
                 );
@@ -87,7 +87,7 @@ const userController = {
         },
     ],
     deleteUser: async (req: Request, res: Response) => {
-        if (!req.user?.isAuthorized) {
+        if (!req.user.userRouteAuthorized) {
             return res.status(403).json({
                 statusBool: false,
                 message: "you are not authorized to delete this user",
@@ -96,7 +96,7 @@ const userController = {
         const result = await User.deleteOne({
             _id: req.params.userId,
         });
-        if (result?.deletedCount == 1) {
+        if (result) {
             return res.status(200).json({
                 statusBool: true,
                 message: "user deleted",
@@ -109,7 +109,7 @@ const userController = {
         }
     },
     getFriendRequests: async (req: Request, res: Response) => {
-        if (!req.user?.isAuthorized) {
+        if (!req.user.userRouteAuthorized) {
             return res.status(403).json({
                 statusBool: false,
                 message: "you are not authorized to view this user's friend requests",
@@ -182,7 +182,7 @@ const userController = {
     },
 
     setFriendRequestsAsViewed: async (req: Request, res: Response) => {
-        if (!req.user?.isAuthorized) {
+        if (!req.user.userRouteAuthorized) {
             return res.status(403).json({
                 statusBool: false,
                 message: "You are not authorized to edit this user's friend requests",
@@ -200,7 +200,7 @@ const userController = {
         });
     },
     acceptFriendRequest: async (req: Request, res: Response) => {
-        if (!req.user?.isAuthorized) {
+        if (!req.user.userRouteAuthorized) {
             return res.status(403).json({
                 statusBool: false,
                 message: "You are not authorized to accept another user's friend requests",
@@ -256,7 +256,7 @@ const userController = {
         });
     },
     deleteFriend: async (req: Request, res: Response) => {
-        if (!req.user?.isAuthorized) {
+        if (!req.user.userRouteAuthorized) {
             return res.status(403).json({
                 statusBool: false,
                 message: "you are not authorized to remove other user's friend",

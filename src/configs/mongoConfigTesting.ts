@@ -1,4 +1,4 @@
-import { MongoMemoryReplSet } from "mongodb-memory-server";
+import { MongoMemoryReplSet } from "mongodb-memory-server-global";
 import mongoose from "mongoose";
 
 const dbConnect = async () => {

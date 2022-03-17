@@ -80,7 +80,7 @@ const authController = {
         async (req: Request, res: Response, next: NextFunction) => {
             const errors = validationResult(req);
             const files = req.files as Express.Multer.File[];
-            const profilePicture = files[0] ? files[0] : { buffer: "", mimetype: "" };
+            const imageMini = files[0] ? files[0] : { buffer: "", mimetype: "" };
             if (!errors.isEmpty()) {
                 return res.status(400).json({
                     statusBool: false,
@@ -110,9 +110,9 @@ const authController = {
                             lastName: req.body.lastName,
                             password: hashedPassword,
                             email: req.body.email,
-                            profilePicture: {
-                                data: profilePicture.buffer,
-                                contentType: profilePicture.mimetype,
+                            imageMini: {
+                                data: imageMini.buffer,
+                                contentType: imageMini.mimetype,
                             },
                         });
                         if (user)
