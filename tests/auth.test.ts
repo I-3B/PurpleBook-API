@@ -1,5 +1,5 @@
 import { clearDB, dbConnect, dbDisconnect } from "../src/configs/mongoConfigTesting";
-import { login, signup } from "./auth.utils";
+import { login, signup } from "./utils/auth.utils";
 beforeAll(async () => await dbConnect());
 beforeEach(async () => await clearDB());
 afterAll(async () => await dbDisconnect());

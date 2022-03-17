@@ -1,5 +1,5 @@
 import { clearDB, dbConnect, dbDisconnect } from "../src/configs/mongoConfigTesting";
-import { login, signup } from "./auth.utils";
+import { login, signup } from "./utils/auth.utils";
 import {
     acceptFriendRequest,
     addFriendRequest,
@@ -10,7 +10,7 @@ import {
     getFriends,
     getUser,
     setFriendRequestsAsViewed,
-} from "./user.utils";
+} from "./utils/user.utils";
 beforeAll(async () => await dbConnect());
 beforeEach(async () => await clearDB());
 afterAll(async () => await dbDisconnect());
@@ -44,6 +44,7 @@ describe("users route", () => {
             const { user } = (await editUser("AfterEdit", userId, token, 200)).body;
             expect(user.firstName).toBe("AfterEdit");
         });
+
         test("shouldn't be able to edit profile if not authorized", async () => {
             const { userId } = (await signup("UserToEdit", 201)).body;
             await signup("AnotherUser", 201);
@@ -66,6 +67,7 @@ describe("users route", () => {
 
             await getUser(userId, newToken, 404);
         });
+
         test("should not be able to delete user if not authorized", async () => {
             const { userId } = (await signup("UserToDeleteTwo", 201)).body;
             await signup("WantToDelete", 201);
@@ -73,6 +75,44 @@ describe("users route", () => {
 
             await deleteUser(userId, token, 403);
         });
+
+        test("deleting a user should remove him from another users friend requests", async () => {
+            await signup("toBeDeleted", 201);
+            const { userId: deletedId, token: deletedToken } = (await login("toBeDeleted", 200))
+                .body;
+            await signup("FRReceiver", 201);
+            const { userId: FRId, token: FRToken } = (await login("FRReceiver", 200)).body;
+
+            await addFriendRequest(FRId, deletedToken, 200);
+
+            await deleteUser(deletedId, deletedToken, 200);
+
+            const { friendRequests } = (await getFriendRequests(FRId, FRToken, 200)).body;
+            expect(friendRequests).not.toContainEqual(
+                expect.objectContaining({
+                    userId: deletedId,
+                })
+            );
+        });
+
+        test("deleting a user should unfriend him from other users", async () => {
+            await signup("deleted", 201);
+            const { userId: deletedId, token: deletedToken } = (await login("deleted", 200)).body;
+            await signup("friend", 201);
+            const { userId: friendId, token: friendToken } = (await login("friend", 200)).body;
+
+            await addFriendRequest(deletedId, friendToken, 200);
+            await acceptFriendRequest(deletedId, deletedToken, friendId, 200);
+
+            await deleteUser(deletedId, deletedToken, 200);
+
+            const { friends } = (await getFriends(friendId, friendToken, 200)).body;
+            expect(friends).not.toContainEqual(deletedId);
+        });
+
+        test.todo("deleting a user should remove all his posts");
+
+        test.todo("deleting a user should remove all his comments");
     });
 
     describe("getFriendRequests", () => {
@@ -82,6 +122,7 @@ describe("users route", () => {
 
             await getFriendRequests(userId, token, 200);
         });
+
         test("user should not be able to view another user's friend requests", async () => {
             const { userId: friendRequestUserId } = (await signup("UserFriendRequest", 201)).body;
             await signup("UserWantToViewFR", 201);
@@ -90,6 +131,7 @@ describe("users route", () => {
             await getFriendRequests(friendRequestUserId, wantToViewToken, 403);
         });
     });
+
     describe("addFriendRequest", () => {
         test("user should be able to send a friend request to another user and not to oneself", async () => {
             const { userId: receiverId } = (await signup("UserRequested", 201)).body;
@@ -109,6 +151,7 @@ describe("users route", () => {
                 })
             );
         });
+
         test("user should not be able to send a friend request twice", async () => {
             const { userId: receiverId } = (await signup("UserRequestedTwice", 201)).body;
             await signup("UserSendingTwice", 201);
@@ -118,6 +161,7 @@ describe("users route", () => {
             //send request again
             await addFriendRequest(receiverId, senderToken, 400);
         });
+
         test("user should not be able to send a friend request to non existent user", async () => {
             await signup("Deleted", 201);
             const { userId: deletedId, token: deletedToken } = (await login("Deleted", 200)).body;
@@ -128,23 +172,26 @@ describe("users route", () => {
 
             await addFriendRequest(deletedId, token, 404);
         });
+
         test("expect error to be thrown if userId is incorrect", async () => {
             await signup("User", 201);
 
             const { token } = (await login("User", 200)).body;
             await addFriendRequest("WRONG_ID", token, 500);
         });
+
         test("user should not be able to send a friend request to an already friend", async () => {
             await signup("UserOne", 201);
             const { userId: friendId, token: friendToken } = (await login("UserOne", 200)).body;
             await signup("UserTwo", 201);
             const { userId, token } = (await login("UserTwo", 200)).body;
 
-            addFriendRequest(userId, friendToken, 200);
-            acceptFriendRequest(userId, token, friendId, 200);
-            addFriendRequest(userId, friendToken, 400);
+            await addFriendRequest(userId, friendToken, 200);
+            await acceptFriendRequest(userId, token, friendId, 200);
+            await addFriendRequest(userId, friendToken, 400);
         });
     });
+
     describe("setFriendRequestsAsViewed", () => {
         test("should be able to set friend requests as viewed", async () => {
             await signup("UserOne", 201);
@@ -162,6 +209,7 @@ describe("users route", () => {
                 })
             );
         });
+
         test("should not be able to set friend requests as viewed when not authorized", async () => {
             await signup("UserOne", 201);
             const { userId } = (await login("UserOne", 200)).body;
@@ -171,6 +219,7 @@ describe("users route", () => {
             await setFriendRequestsAsViewed(userId, token, 403);
         });
     });
+
     describe("acceptFriendRequest", () => {
         test("should be able to accept a friend request", async () => {
             await signup("UserOne", 201);
@@ -181,6 +230,7 @@ describe("users route", () => {
             addFriendRequest(userId, friendToken, 200);
             acceptFriendRequest(userId, token, friendId, 200);
         });
+
         test("should not be able to accept a friend request if not authorized", async () => {
             await signup("UserOne", 201);
             const { userId: friendId, token: friendToken } = (await login("UserOne", 200)).body;
@@ -191,6 +241,7 @@ describe("users route", () => {
             const anotherUserToken = friendToken;
             acceptFriendRequest(userId, anotherUserToken, friendId, 403);
         });
+
         test("should not be able to accept a non existent friend request", async () => {
             await signup("UserOne", 201);
             const { userId: friendId, token: friendToken } = (await login("UserOne", 200)).body;
@@ -201,6 +252,7 @@ describe("users route", () => {
             acceptFriendRequest(userId, token, friendId, 200);
             acceptFriendRequest(userId, token, friendId, 400);
         });
+
         test("accepting a friend request should add friend id to user's friend list and likewise", async () => {
             await signup("User", 201);
             const { userId, token } = (await login("User", 200)).body;
@@ -216,6 +268,7 @@ describe("users route", () => {
             expect(friendList).toContainEqual(userId);
         });
     });
+
     describe("deleteFriend", () => {
         test("should be able to unfriend another user", async () => {
             await signup("User", 201);
@@ -232,6 +285,7 @@ describe("users route", () => {
             expect(userList).not.toContainEqual(friendId);
             expect(friendList).not.toContainEqual(userId);
         });
+
         test("should throw error if friendId is in wrong form", async () => {
             await signup("User", 201);
             const { userId, token } = (await login("User", 200)).body;

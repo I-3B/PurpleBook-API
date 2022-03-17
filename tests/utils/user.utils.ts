@@ -1,5 +1,5 @@
 import request from "supertest";
-import app from "./app";
+import app from "../app";
 const getUser = (userId: String, token: String, status: Number) => {
     return request(app)
         .get(`/api/users/${userId}`)
