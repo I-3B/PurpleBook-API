@@ -2,12 +2,12 @@ import { Request, Response } from "express";
 import { body, validationResult } from "express-validator";
 import mongoose from "mongoose";
 import Post from "../models/Post";
-
+export const POST_CHARACTERS_LIMIT = 5000;
 const postController = {
     addPost: [
         body("content")
-            .isLength({ max: 5000 })
-            .withMessage("post content can not be more than 5000 characters"),
+            .isLength({ max: POST_CHARACTERS_LIMIT })
+            .withMessage(`post content can not be more than ${POST_CHARACTERS_LIMIT} characters`),
         async (req: Request, res: Response) => {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
@@ -29,7 +29,7 @@ const postController = {
         },
     ],
     getPost: async (req: Request, res: Response) => {
-        const pipeline = await Post.aggregate([
+        const [post] = await Post.aggregate([
             {
                 $match: {
                     _id: new mongoose.Types.ObjectId(req.params.postId),
@@ -43,6 +43,7 @@ const postController = {
                     as: "author",
                 },
             },
+            
             {
                 $project: {
                     author: { _id: 1, firstName: 1, lastName: 1, imageMini: 1 },
@@ -54,7 +55,7 @@ const postController = {
                 },
             },
         ]);
-        const post = pipeline[0];
+
         if (!post)
             return res.status(404).json({
                 statusBool: false,
@@ -68,8 +69,8 @@ const postController = {
     },
     editPost: [
         body("content")
-            .isLength({ max: 5000 })
-            .withMessage("post content can not be more than 5000 characters"),
+            .isLength({ max: POST_CHARACTERS_LIMIT })
+            .withMessage(`post content can not be more than ${POST_CHARACTERS_LIMIT} characters`),
         async (req: Request, res: Response) => {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
@@ -94,12 +95,8 @@ const postController = {
         },
     ],
     deletePost: async (req: Request, res: Response) => {
-        const result = await Post.deleteOne({ _id: req.params.postId });
-        if (result.deletedCount == 0)
-            return res.status(404).json({
-                statusBool: false,
-                message: "post not found",
-            });
+        await Post.deleteOne({ _id: req.params.postId });
+
         return res.status(200).json({
             statusBool: true,
             message: "post removed",

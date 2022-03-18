@@ -14,7 +14,7 @@ app.use((err: { message: any; status: any }, req: Request, res: Response, next: 
     res.locals.message = err.message;
     res.locals.error = req.app.get("env") === "development" ? err : {};
     res.status(err.status || 500);
-    // console.log(err);
+    console.log(err);
     res.json({ statusBool: false, ...err });
 });
 export default app;

@@ -12,8 +12,6 @@ const User = new Schema(
             data: Buffer,
             contentType: String,
         },
-        posts: [{ type: Schema.Types.ObjectId, ref: "Post" }],
-        comments: [{ type: Schema.Types.ObjectId, ref: "Comment" }],
         postsLiked: [{ type: Schema.Types.ObjectId, ref: "Post" }],
         commentsLiked: [{ type: Schema.Types.ObjectId, ref: "Comment" }],
         friends: [{ type: Schema.Types.ObjectId, ref: "User" }],
