@@ -2,13 +2,16 @@ import { NextFunction, Request, Response } from "express";
 import Comment from "../models/Comment";
 
 const authorizeComment = async (req: Request, res: Response, next: NextFunction) => {
-    const { author } = await Comment.findById(req.params.commentId);
-    if (req.user.id !== author.toString()) {
+    const comment = await Comment.findById(req.params.commentId, { authorId: 1 });
+    if (!comment) {
+        return res.status(404).json({ statusBool: false, message: "comment not found" });
+    }
+    if (req.user.id !== comment.authorId.toString()) {
         return res
             .status(403)
             .json({ statusBool: false, message: "User is not authorized to change this comment" });
-    } else {
-        return next();
     }
+
+    return next();
 };
 export default authorizeComment;
