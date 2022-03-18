@@ -29,16 +29,12 @@ describe("post route", () => {
 
     describe("editPost", () => {
         test("editing post with only content should work", async () => {
-            const {
-                post: { _id: postId },
-            } = (await addPost(token, 10, 201)).body;
+            const { postId } = (await addPost(token, 10, 201)).body;
             await editPost(token, postId, 1, 200);
         });
 
         test("editing post with content more than the characters limit should not work", async () => {
-            const {
-                post: { _id: postId },
-            } = (await addPost(token, 1, 201)).body;
+            const { postId } = (await addPost(token, 1, 201)).body;
             await editPost(token, postId, POST_CHARACTERS_LIMIT + 1, 400);
         });
 
@@ -47,9 +43,7 @@ describe("post route", () => {
             const { token: tokenOne } = (await login("UserOne", 200)).body;
             await signup("UserTwo", 201);
             const { token: tokenTwo } = (await login("UserTwo", 200)).body;
-            const {
-                post: { _id: postId },
-            } = (await addPost(tokenOne, 1, 201)).body;
+            const { postId } = (await addPost(tokenOne, 1, 201)).body;
             await editPost(tokenTwo, postId, 1, 403);
         });
 
@@ -61,8 +55,8 @@ describe("post route", () => {
 
     describe("getPost", () => {
         test("get post should work", async () => {
-            const { post: postAdded } = (await addPost(token, 2, 201)).body;
-            const { post } = (await getPost(token, postAdded._id, 200)).body;
+            const { postId } = (await addPost(token, 2, 201)).body;
+            const { post } = (await getPost(token, postId, 200)).body;
 
             expect(post.content).toBe("aa");
         });
@@ -75,25 +69,25 @@ describe("post route", () => {
 
     describe("deletePost", () => {
         test("deleting post should work", async () => {
-            const { post } = (await addPost(token, 1, 201)).body;
+            const { postId } = (await addPost(token, 1, 201)).body;
 
-            await deletePost(token, post._id, 200);
+            await deletePost(token, postId, 200);
 
-            await getPost(token, post._id, 404);
+            await getPost(token, postId, 404);
         });
 
         test("deleting a post should remove all its comments", async () => {
-            const { post } = (await addPost(token, 1, 201)).body;
-            await addComment(token, post._id, 1, 201);
-            await addComment(token, post._id, 2, 201);
-            await addComment(token, post._id, 3, 201);
+            const { postId } = (await addPost(token, 1, 201)).body;
+            await addComment(token, postId, 1, 201);
+            await addComment(token, postId, 2, 201);
+            await addComment(token, postId, 3, 201);
 
-            const { comments } = (await getAllComments(token, post._id, 200)).body;
+            const { comments } = (await getAllComments(token, postId, 200)).body;
             expect(comments.length).toBe(3);
 
-            await deletePost(token, post._id, 200);
+            await deletePost(token, postId, 200);
 
-            const { comments: commentsAfterDelete } = (await getAllComments(token, post._id, 200))
+            const { comments: commentsAfterDelete } = (await getAllComments(token, postId, 200))
                 .body;
             expect(commentsAfterDelete.length).toBe(0);
         });

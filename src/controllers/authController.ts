@@ -12,7 +12,6 @@ const authController = {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
                 return res.status(400).json({
-                    message: "login failed",
                     errors: [...errors.array()],
                 });
             } else {
@@ -28,20 +27,24 @@ const authController = {
                                 expiresIn: "1 year",
                             });
                             return res.status(200).json({
-                                message: "Auth Passed",
                                 userId: user._id,
                                 token,
                             });
                         } else {
                             return res.status(400).json({
-                                message: "Wrong password",
+                                errors: [
+                                    {
+                                        value: req.body.password,
+                                        msg: "wrong password",
+                                        param: "password",
+                                        location: "body",
+                                    },
+                                ],
                             });
                         }
                     });
                 } else {
-                    return res.status(404).json({
-                        message: "user not found",
-                    });
+                    return res.sendStatus(404);
                 }
             }
         },
@@ -79,14 +82,12 @@ const authController = {
             const imageMini = files[0] ? files[0] : { buffer: "", mimetype: "" };
             if (!errors.isEmpty()) {
                 return res.status(400).json({
-                    message: "signup failed",
                     errors: [...errors.array()],
                 });
             } else {
                 const emailUsed = await isEmailUsed(req.body.email);
                 if (emailUsed) {
                     return res.status(400).json({
-                        message: "signup failed",
                         errors: [
                             {
                                 value: req.body.email,
@@ -111,7 +112,6 @@ const authController = {
                         });
                         if (user)
                             return res.status(201).json({
-                                message: "signup succeed",
                                 userId: user._id.toString(),
                             });
                     });

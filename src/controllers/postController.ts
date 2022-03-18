@@ -12,7 +12,6 @@ const postController = {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
                 return res.status(400).json({
-                    message: "post submitting failed",
                     errors: [...errors.array()],
                 });
             }
@@ -21,8 +20,7 @@ const postController = {
                 content: req.body.content,
             });
             return res.status(201).json({
-                message: "Post created",
-                post: post,
+                postId: post._id,
             });
         },
     ],
@@ -54,12 +52,8 @@ const postController = {
             },
         ]);
 
-        if (!post)
-            return res.status(404).json({
-                message: "post not found",
-            });
+        if (!post) return res.sendStatus(404);
         return res.status(200).json({
-            message: "post retrieved",
             post: post,
         });
     },
@@ -71,29 +65,17 @@ const postController = {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
                 return res.status(400).json({
-                    message: "post submitting failed",
                     errors: [...errors.array()],
                 });
             }
-            const post = await Post.findByIdAndUpdate(
-                req.params.postId,
-                {
-                    content: req.body.content,
-                },
-                { new: true }
-            );
-            return res.status(200).json({
-                message: "Post edited",
-                post: post,
-            });
+            await Post.updateOne({ _id: req.params.postId });
+
+            return res.sendStatus(200);
         },
     ],
     deletePost: async (req: Request, res: Response) => {
         await Post.deleteOne({ _id: req.params.postId });
-
-        return res.status(200).json({
-            message: "post removed",
-        });
+        return res.sendStatus(200);
     },
 };
 

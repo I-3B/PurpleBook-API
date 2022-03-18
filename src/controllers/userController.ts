@@ -21,9 +21,9 @@ const userController = {
             });
         }
         if (user) {
-            return res.status(200).json({ message: "User found", user: user });
+            return res.status(200).json({ user });
         }
-        return res.status(404).json({ message: "User not found" });
+        return res.sendStatus(404);
     },
     editUser: [
         body("firstName")
@@ -43,16 +43,12 @@ const userController = {
             .withMessage("Last name cannot be empty or more than 20 characters.")
             .escape(),
         async (req: Request, res: Response) => {
-            if (!req.user.userRouteAuthorized)
-                return res.status(403).json({
-                    message: "You are not authorized to edit this user",
-                });
+            if (!req.user.userRouteAuthorized) return res.sendStatus(403);
             const errors = validationResult(req);
             const files = req.files as Express.Multer.File[];
             const imageMini = files[0] ? files[0] : { buffer: "", mimetype: "" };
             if (!errors.isEmpty()) {
                 return res.status(400).json({
-                    message: "update failed",
                     errors: [...errors.array()],
                 });
             } else {
@@ -77,7 +73,6 @@ const userController = {
                 );
                 if (user)
                     return res.status(200).json({
-                        message: "update succeeded",
                         user: user,
                     });
             }
@@ -85,41 +80,30 @@ const userController = {
     ],
     deleteUser: async (req: Request, res: Response) => {
         if (!req.user.userRouteAuthorized) {
-            return res.status(403).json({
-                message: "you are not authorized to delete this user",
-            });
+            return res.sendStatus(403);
         }
         const result = await User.deleteOne({
             _id: req.params.userId,
         });
         if (result) {
-            return res.status(200).json({
-                message: "user deleted",
-            });
-        } else {
-            return res.status(500).json({
-                message: "something went wrong :(",
-            });
+            return res.sendStatus(200);
         }
     },
     getFriendRequests: async (req: Request, res: Response) => {
         if (!req.user.userRouteAuthorized) {
-            return res.status(403).json({
-                message: "you are not authorized to view this user's friend requests",
-            });
+            return res.sendStatus(403);
         }
         const { friendRequests } = await User.findById(req.params.userId, {
             friendRequests: 1,
         });
         return res.status(200).json({
-            message: "pending friend requests",
             friendRequests: friendRequests,
         });
     },
     addFriendRequest: async (req: Request, res: Response) => {
         if (req.user?.id === req.params.userId) {
             return res.status(400).json({
-                message: "You are sending a friend request to yourself... man this is just sad",
+                error: "You are sending a friend request to yourself... man this is just sad",
             });
         }
         const [alreadyFriend, userExist] = await Promise.all([
@@ -131,12 +115,11 @@ const userController = {
         ]);
         if (alreadyFriend)
             return res.status(400).json({
-                message: "user is already a friend",
+                error: "user is already a friend",
             });
         else if (!userExist) {
             return res.status(404).json({
-                message:
-                    "the user requested is not found, maybe the account got deleted or it never existed at all",
+                error: "the user requested is not found, maybe the account got deleted or it never existed at all",
             });
         } else {
             const result = await User.updateOne(
@@ -155,24 +138,19 @@ const userController = {
                     },
                 }
             );
-            //user is not in friends array?
-            if (result?.matchedCount == 1) {
-                return res.status(200).json({
-                    message: "friend request added",
-                });
-            } else if (result?.matchedCount == 0) {
+            //user is in friends array?
+            if (result?.matchedCount == 0) {
                 return res.status(400).json({
-                    message: "already sent a friend request",
+                    error: "already sent a friend request",
                 });
             }
+            return res.sendStatus(200);
         }
     },
 
     setFriendRequestsAsViewed: async (req: Request, res: Response) => {
         if (!req.user.userRouteAuthorized) {
-            return res.status(403).json({
-                message: "You are not authorized to edit this user's friend requests",
-            });
+            return res.sendStatus(403);
         }
         await User.updateOne(
             { _id: req.params.userId, "friendRequests.viewed": false },
@@ -180,15 +158,11 @@ const userController = {
                 $set: { "friendRequests.$.viewed": true },
             }
         );
-        return res.status(200).json({
-            message: "friend requests all set to viewed",
-        });
+        return res.sendStatus(200);
     },
     acceptFriendRequest: async (req: Request, res: Response) => {
         if (!req.user.userRouteAuthorized) {
-            return res.status(403).json({
-                message: "You are not authorized to accept another user's friend requests",
-            });
+            return res.sendStatus(403);
         }
         const userDeletedFromFriendRequests = await User.updateOne(
             {
@@ -201,9 +175,7 @@ const userController = {
             }
         );
         if (userDeletedFromFriendRequests.modifiedCount === 0) {
-            return res.status(400).json({
-                message: "User is not found in friend requests",
-            });
+            return res.sendStatus(404);
         }
         const session = await User.startSession();
         await session.withTransaction(() => {
@@ -223,24 +195,19 @@ const userController = {
             ]);
         });
         await session.endSession();
-        return res.status(200).json({
-            message: "Friend request accepted",
-        });
+        return res.sendStatus(200);
     },
     getFriends: async (req: Request, res: Response) => {
         const { friends } = await User.findById(req.params.userId, {
             friends: 1,
         });
         return res.status(200).json({
-            message: "User's friends list",
             friends: friends,
         });
     },
     deleteFriend: async (req: Request, res: Response) => {
         if (!req.user.userRouteAuthorized) {
-            return res.status(403).json({
-                message: "you are not authorized to remove other user's friend",
-            });
+            return res.sendStatus(403);
         }
         const session = await User.startSession();
         await session.withTransaction(() => {
@@ -268,9 +235,7 @@ const userController = {
             ]);
         });
         await session.endSession();
-        return res.status(200).json({
-            message: "Friend removed",
-        });
+        return res.sendStatus(200);
     },
 };
 

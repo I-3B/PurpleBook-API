@@ -1,13 +1,12 @@
 import express from "express";
 import commentController from "../controllers/commentController";
-import authorizeComment from "../utils/authorizeComment";
+import commentFindAndAuthorize from "../utils/commentFindAndAuthorize";
 
 const router = express.Router({ mergeParams: true });
 
 router.post("/", commentController.addComment);
 router.get("/", commentController.getAllComments);
-router.patch("/:commentId", authorizeComment, commentController.editComment);
-router.delete("/:commentId", authorizeComment, commentController.deleteComment);
-
+router.patch("/:commentId", commentFindAndAuthorize, commentController.editComment);
+router.delete("/:commentId", commentFindAndAuthorize, commentController.deleteComment);
 
 export default router;
