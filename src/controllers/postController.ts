@@ -12,7 +12,6 @@ const postController = {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
                 return res.status(400).json({
-                    statusBool: false,
                     message: "post submitting failed",
                     errors: [...errors.array()],
                 });
@@ -22,7 +21,6 @@ const postController = {
                 content: req.body.content,
             });
             return res.status(201).json({
-                statusBool: true,
                 message: "Post created",
                 post: post,
             });
@@ -43,7 +41,7 @@ const postController = {
                     as: "author",
                 },
             },
-            
+
             {
                 $project: {
                     author: { _id: 1, firstName: 1, lastName: 1, imageMini: 1 },
@@ -58,11 +56,9 @@ const postController = {
 
         if (!post)
             return res.status(404).json({
-                statusBool: false,
                 message: "post not found",
             });
         return res.status(200).json({
-            statusBool: true,
             message: "post retrieved",
             post: post,
         });
@@ -75,7 +71,6 @@ const postController = {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
                 return res.status(400).json({
-                    statusBool: false,
                     message: "post submitting failed",
                     errors: [...errors.array()],
                 });
@@ -88,7 +83,6 @@ const postController = {
                 { new: true }
             );
             return res.status(200).json({
-                statusBool: true,
                 message: "Post edited",
                 post: post,
             });
@@ -98,7 +92,6 @@ const postController = {
         await Post.deleteOne({ _id: req.params.postId });
 
         return res.status(200).json({
-            statusBool: true,
             message: "post removed",
         });
     },

@@ -15,7 +15,6 @@ const commentController = {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
                 return res.status(400).json({
-                    statusBool: false,
                     message: "comment submitting failed",
                     errors: [...errors.array()],
                 });
@@ -24,7 +23,6 @@ const commentController = {
             const postFound = !!(await Post.findById(postId));
             if (!postFound)
                 return res.status(404).json({
-                    statusBool: false,
                     message: "the post commented on is not found",
                 });
             const comment = await Comment.create({
@@ -33,7 +31,6 @@ const commentController = {
                 content: req.body.content,
             });
             return res.status(201).json({
-                statusBool: true,
                 message: "comment added",
                 comment: comment,
             });
@@ -63,7 +60,6 @@ const commentController = {
                     foreignField: "_id",
                     as: "author",
                 },
-
             },
             {
                 $project: {
@@ -77,7 +73,6 @@ const commentController = {
         ]);
 
         return res.status(200).json({
-            statusBool: true,
             message: "posts comments retrieved",
             comments: comments,
         });
@@ -92,7 +87,6 @@ const commentController = {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
                 return res.status(400).json({
-                    statusBool: false,
                     message: "edited comment submitting failed",
                     errors: [...errors.array()],
                 });
@@ -107,7 +101,6 @@ const commentController = {
             );
 
             return res.status(200).json({
-                statusBool: true,
                 message: "comment edited",
                 comment: comment,
             });
@@ -116,7 +109,6 @@ const commentController = {
     deleteComment: async (req: Request, res: Response) => {
         await Comment.deleteOne({ _id: req.params.commentId });
         return res.status(200).json({
-            statusBool: true,
             message: "comment removed",
         });
     },

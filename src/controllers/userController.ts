@@ -21,9 +21,9 @@ const userController = {
             });
         }
         if (user) {
-            return res.status(200).json({ statusBool: true, message: "User found", user: user });
+            return res.status(200).json({ message: "User found", user: user });
         }
-        return res.status(404).json({ statusBool: false, message: "User not found" });
+        return res.status(404).json({ message: "User not found" });
     },
     editUser: [
         body("firstName")
@@ -45,7 +45,6 @@ const userController = {
         async (req: Request, res: Response) => {
             if (!req.user.userRouteAuthorized)
                 return res.status(403).json({
-                    statusBool: false,
                     message: "You are not authorized to edit this user",
                 });
             const errors = validationResult(req);
@@ -53,7 +52,6 @@ const userController = {
             const imageMini = files[0] ? files[0] : { buffer: "", mimetype: "" };
             if (!errors.isEmpty()) {
                 return res.status(400).json({
-                    statusBool: false,
                     message: "update failed",
                     errors: [...errors.array()],
                 });
@@ -79,7 +77,6 @@ const userController = {
                 );
                 if (user)
                     return res.status(200).json({
-                        statusBool: true,
                         message: "update succeeded",
                         user: user,
                     });
@@ -89,7 +86,6 @@ const userController = {
     deleteUser: async (req: Request, res: Response) => {
         if (!req.user.userRouteAuthorized) {
             return res.status(403).json({
-                statusBool: false,
                 message: "you are not authorized to delete this user",
             });
         }
@@ -98,12 +94,10 @@ const userController = {
         });
         if (result) {
             return res.status(200).json({
-                statusBool: true,
                 message: "user deleted",
             });
         } else {
             return res.status(500).json({
-                statusBool: false,
                 message: "something went wrong :(",
             });
         }
@@ -111,7 +105,6 @@ const userController = {
     getFriendRequests: async (req: Request, res: Response) => {
         if (!req.user.userRouteAuthorized) {
             return res.status(403).json({
-                statusBool: false,
                 message: "you are not authorized to view this user's friend requests",
             });
         }
@@ -119,7 +112,6 @@ const userController = {
             friendRequests: 1,
         });
         return res.status(200).json({
-            statusBool: true,
             message: "pending friend requests",
             friendRequests: friendRequests,
         });
@@ -127,7 +119,6 @@ const userController = {
     addFriendRequest: async (req: Request, res: Response) => {
         if (req.user?.id === req.params.userId) {
             return res.status(400).json({
-                statusBool: false,
                 message: "You are sending a friend request to yourself... man this is just sad",
             });
         }
@@ -140,12 +131,10 @@ const userController = {
         ]);
         if (alreadyFriend)
             return res.status(400).json({
-                statusBool: false,
                 message: "user is already a friend",
             });
         else if (!userExist) {
             return res.status(404).json({
-                statusBool: false,
                 message:
                     "the user requested is not found, maybe the account got deleted or it never existed at all",
             });
@@ -169,12 +158,10 @@ const userController = {
             //user is not in friends array?
             if (result?.matchedCount == 1) {
                 return res.status(200).json({
-                    statusBool: true,
                     message: "friend request added",
                 });
             } else if (result?.matchedCount == 0) {
                 return res.status(400).json({
-                    statusBool: false,
                     message: "already sent a friend request",
                 });
             }
@@ -184,7 +171,6 @@ const userController = {
     setFriendRequestsAsViewed: async (req: Request, res: Response) => {
         if (!req.user.userRouteAuthorized) {
             return res.status(403).json({
-                statusBool: false,
                 message: "You are not authorized to edit this user's friend requests",
             });
         }
@@ -195,14 +181,12 @@ const userController = {
             }
         );
         return res.status(200).json({
-            statusBool: false,
             message: "friend requests all set to viewed",
         });
     },
     acceptFriendRequest: async (req: Request, res: Response) => {
         if (!req.user.userRouteAuthorized) {
             return res.status(403).json({
-                statusBool: false,
                 message: "You are not authorized to accept another user's friend requests",
             });
         }
@@ -218,7 +202,6 @@ const userController = {
         );
         if (userDeletedFromFriendRequests.modifiedCount === 0) {
             return res.status(400).json({
-                statusBool: false,
                 message: "User is not found in friend requests",
             });
         }
@@ -241,7 +224,6 @@ const userController = {
         });
         await session.endSession();
         return res.status(200).json({
-            statusBool: true,
             message: "Friend request accepted",
         });
     },
@@ -250,7 +232,6 @@ const userController = {
             friends: 1,
         });
         return res.status(200).json({
-            statusBool: true,
             message: "User's friends list",
             friends: friends,
         });
@@ -258,7 +239,6 @@ const userController = {
     deleteFriend: async (req: Request, res: Response) => {
         if (!req.user.userRouteAuthorized) {
             return res.status(403).json({
-                statusBool: false,
                 message: "you are not authorized to remove other user's friend",
             });
         }
@@ -289,7 +269,6 @@ const userController = {
         });
         await session.endSession();
         return res.status(200).json({
-            statusBool: true,
             message: "Friend removed",
         });
     },

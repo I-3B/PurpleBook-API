@@ -12,7 +12,6 @@ const authController = {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
                 return res.status(400).json({
-                    statusBool: true,
                     message: "login failed",
                     errors: [...errors.array()],
                 });
@@ -29,21 +28,18 @@ const authController = {
                                 expiresIn: "1 year",
                             });
                             return res.status(200).json({
-                                statusBool: true,
                                 message: "Auth Passed",
                                 userId: user._id,
                                 token,
                             });
                         } else {
                             return res.status(400).json({
-                                statusBool: false,
                                 message: "Wrong password",
                             });
                         }
                     });
                 } else {
                     return res.status(404).json({
-                        statusBool: false,
                         message: "user not found",
                     });
                 }
@@ -83,7 +79,6 @@ const authController = {
             const imageMini = files[0] ? files[0] : { buffer: "", mimetype: "" };
             if (!errors.isEmpty()) {
                 return res.status(400).json({
-                    statusBool: false,
                     message: "signup failed",
                     errors: [...errors.array()],
                 });
@@ -91,7 +86,6 @@ const authController = {
                 const emailUsed = await isEmailUsed(req.body.email);
                 if (emailUsed) {
                     return res.status(400).json({
-                        statusBool: false,
                         message: "signup failed",
                         errors: [
                             {
@@ -117,7 +111,6 @@ const authController = {
                         });
                         if (user)
                             return res.status(201).json({
-                                statusBool: true,
                                 message: "signup succeed",
                                 userId: user._id.toString(),
                             });
