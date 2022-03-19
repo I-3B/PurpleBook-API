@@ -5,6 +5,7 @@ import {
     acceptFriendRequest,
     addFriendRequest,
     deleteFriend,
+    deleteFriendRequest,
     deleteUser,
     editUser,
     getFriendRequests,
@@ -217,14 +218,29 @@ describe("users route", () => {
 
         test("should not be able to set friend requests as viewed when not authorized", async () => {
             await signup("UserOne", 201);
-            const { userId } = (await login("UserOne", 200)).body;
             await signup("UserTwo", 201);
+            const { userId } = (await login("UserOne", 200)).body;
             const { token } = (await login("UserTwo", 200)).body;
 
             await setFriendRequestsAsViewed(userId, token, 403);
         });
     });
+    describe("deleteFriendRequest", () => {
+        test("should delete friend request when authorized", async () => {
+            await signup("UserOne", 201);
+            await signup("UserTwo", 201);
+            const { userId: receiverId, token: receiverToken } = (await login("UserOne", 200)).body;
+            const { userId: senderId, token: senderToken } = (await login("UserTwo", 200)).body;
 
+            await addFriendRequest(receiverId, senderToken, 200);
+            await deleteFriendRequest(receiverId, receiverToken, senderId, 200);
+
+            const { friendRequests } = (await getFriendRequests(receiverId, receiverToken, 200))
+                .body;
+
+            expect(friendRequests.length).toBe(0);
+        });
+    });
     describe("acceptFriendRequest", () => {
         test("should be able to accept a friend request", async () => {
             await signup("UserOne", 201);

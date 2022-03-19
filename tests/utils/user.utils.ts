@@ -38,6 +38,17 @@ const setFriendRequestsAsViewed = (userId: String, token: String, status: Number
         .set("Authorization", `Bearer ${token}`)
         .expect(status);
 };
+const deleteFriendRequest = (
+    userId: String,
+    token: String,
+    friendRequestId: String,
+    status: Number
+) => {
+    return request(app)
+        .delete(`/api/users/${userId}/friend_requests/${friendRequestId}`)
+        .set("Authorization", `Bearer ${token}`)
+        .expect(status);
+};
 const acceptFriendRequest = (userId: String, token: String, friendId: String, status: Number) => {
     return request(app)
         .post(`/api/users/${userId}/friends/${friendId}`)
@@ -63,6 +74,7 @@ export {
     addFriendRequest,
     getFriendRequests,
     setFriendRequestsAsViewed,
+    deleteFriendRequest,
     acceptFriendRequest,
     getFriends,
     deleteFriend,

@@ -80,6 +80,11 @@ const userController = {
             return res.sendStatus(200);
         }
     },
+    getPosts: async (req: Request, res: Response) => {
+        
+    },
+    getComments: async (req: Request, res: Response) => {},
+
     getFriendRequests: async (req: Request, res: Response) => {
         if (!req.user.userRouteAuthorized) {
             return res.sendStatus(403);
@@ -151,6 +156,23 @@ const userController = {
         );
         return res.sendStatus(200);
     },
+    deleteFriendRequest: async (req: Request, res: Response) => {
+        if (!req.user.userRouteAuthorized) {
+            return res.sendStatus(403);
+        }
+        await User.updateOne(
+            {
+                _id: req.params.userId,
+            },
+            {
+                $pull: {
+                    friendRequests: { user: req.params.friendRequestId },
+                },
+            }
+        );
+
+        return res.sendStatus(200);
+    },
     acceptFriendRequest: async (req: Request, res: Response) => {
         if (!req.user.userRouteAuthorized) {
             return res.sendStatus(403);
@@ -188,6 +210,7 @@ const userController = {
         await session.endSession();
         return res.sendStatus(200);
     },
+
     getFriends: async (req: Request, res: Response) => {
         const { friends } = await User.findById(req.params.userId, {
             friends: 1,

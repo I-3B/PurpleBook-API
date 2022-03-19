@@ -8,9 +8,13 @@ router.get("/", userController.getUser);
 router.patch("/", upload.any(), userController.editUser);
 router.delete("/", userController.deleteUser);
 
+router.get('/posts',userController.getPosts);
+router.get('comments',userController.getComments);
+
 router.get("/friend_requests", userController.getFriendRequests);
 router.post("/friend_requests", userController.addFriendRequest);
 router.patch("/friend_requests", userController.setFriendRequestsAsViewed);
+router.delete("/friend_requests/:friendRequestId",userController.deleteFriendRequest)
 
 router.get("/friends", userController.getFriends);
 router.delete("/friends/:friendId", userController.deleteFriend);
