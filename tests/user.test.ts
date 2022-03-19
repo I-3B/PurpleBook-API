@@ -1,5 +1,6 @@
 import { clearDB, dbConnect, dbDisconnect } from "../src/configs/mongoConfigTesting";
 import { login, signup } from "./utils/auth.utils";
+import { addComment } from "./utils/comment.utils";
 import { addPost } from "./utils/post.utils";
 import {
     acceptFriendRequest,
@@ -11,6 +12,8 @@ import {
     getFriendRequests,
     getFriends,
     getUser,
+    getUserComments,
+    getUserPosts,
     setFriendRequestsAsViewed,
 } from "./utils/user.utils";
 beforeAll(async () => await dbConnect());
@@ -109,7 +112,29 @@ describe("users route", () => {
 
         test.todo("deleting a user should remove all his comments");
     });
+    describe("getPosts", () => {
+        test("should retrieve users posts", async () => {
+            await signup("User", 201);
+            const { userId, token } = (await login("User", 200)).body;
+            await addPost(token, 1, 201);
 
+            await getUserPosts(userId, token, 200);
+        });
+    });
+    describe("getComments", () => {
+        test("should retrieve users comments", async () => {
+            await signup("User", 201);
+            const { userId, token } = (await login("User", 200)).body;
+
+            const { postId } = (await addPost(token, 100, 201)).body;
+            await addComment(token, postId, 5, 201);
+
+            const { comments } = (await getUserComments(userId, token, 200)).body;
+
+            expect(comments[0].post.contentPreview).toBe("a".repeat(60));
+            expect(comments[0].post.postAuthorFirstName).toBe("User");
+        });
+    });
     describe("getFriendRequests", () => {
         test("user should be able to view their friend requests", async () => {
             await signup("UserOwnFR", 201);

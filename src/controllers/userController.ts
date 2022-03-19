@@ -1,5 +1,8 @@
 import { Request, Response } from "express";
 import { body, validationResult } from "express-validator";
+import mongoose from "mongoose";
+import Comment from "../models/Comment";
+import Post from "../models/Post";
 import User from "../models/User";
 
 const userController = {
@@ -81,9 +84,86 @@ const userController = {
         }
     },
     getPosts: async (req: Request, res: Response) => {
-        
+        const posts = await Post.aggregate([
+            {
+                $match: { authorId: new mongoose.Types.ObjectId(req.params.userId) },
+            },
+            {
+                $lookup: {
+                    from: "comments",
+                    localField: "_id",
+                    foreignField: "postId",
+                    as: "comments",
+                },
+            },
+            {
+                $project: {
+                    content: 1,
+                    image: 1,
+                    likes: 1,
+                    likesCount: { $size: "$likes" },
+                    commentCount: { $size: "$comments" },
+                    createdAt: 1,
+                    updatedAt: 1,
+                },
+            },
+        ]);
+        posts.map((post: { likes: Array<String> }) => {
+            if (post.likes.includes(req.user.id)) {
+                //TODO add likedByUser after adding likes route
+            }
+        });
+        return res.status(200).json({ posts });
     },
-    getComments: async (req: Request, res: Response) => {},
+    getComments: async (req: Request, res: Response) => {
+        const comments = await Comment.aggregate([
+            {
+                $match: { authorId: new mongoose.Types.ObjectId(req.params.userId) },
+            },
+            {
+                $lookup: {
+                    from: "posts",
+                    pipeline: [
+                        {
+                            $lookup: {
+                                from: "users",
+                                localField: "authorId",
+                                foreignField: "_id",
+                                as: "postAuthor",
+                            },
+                        },
+                        {
+                            $project: {
+                                _id: 1,
+                                postAuthorFirstName: "$postAuthor.firstName",
+                                contentPreview: { $substr: ["$content", 0, 60] },
+                            },
+                        },
+                    ],
+                    localField: "postId",
+                    foreignField: "_id",
+                    as: "post",
+                },
+            },
+            {
+                $project: {
+                    post: 1,
+                    content: 1,
+                    image: 1,
+                    likes: 1,
+                    likesCount: { $size: "$likes" },
+                    createdAt: 1,
+                    updatedAt: 1,
+                },
+            },
+        ]);
+        comments.map((comment: { post: any }) => {
+            comment.post = comment.post[0];
+            comment.post.postAuthorFirstName = comment.post.postAuthorFirstName[0];
+            return comment;
+        });
+        return res.status(200).json({ comments: comments });
+    },
 
     getFriendRequests: async (req: Request, res: Response) => {
         if (!req.user.userRouteAuthorized) {

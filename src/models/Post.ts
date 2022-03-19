@@ -7,7 +7,6 @@ const Post = new Schema(
         content: { type: String, required: true },
         image: { data: Buffer, contentType: String },
         likes: [{ type: Schema.Types.ObjectId, ref: "User" }],
-        comments: [{ type: Schema.Types.ObjectId, ref: "Comment" }],
     },
     { timestamps: true }
 );

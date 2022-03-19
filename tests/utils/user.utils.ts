@@ -20,6 +20,18 @@ const deleteUser = (userId: String, token: String, status: Number) => {
         .set("Authorization", `Bearer ${token}`)
         .expect(status);
 };
+const getUserPosts = (userId: String, token: String, status: Number) => {
+    return request(app)
+        .get(`/api/users/${userId}/posts`)
+        .set("Authorization", `Bearer ${token}`)
+        .expect(status);
+};
+const getUserComments = (userId: String, token: String, status: Number) => {
+    return request(app)
+        .get(`/api/users/${userId}/comments`)
+        .set("Authorization", `Bearer ${token}`)
+        .expect(status);
+};
 const addFriendRequest = (userId: String, token: String, status: Number) => {
     return request(app)
         .post(`/api/users/${userId}/friend_requests`)
@@ -71,6 +83,8 @@ export {
     getUser,
     editUser,
     deleteUser,
+    getUserPosts,
+    getUserComments,
     addFriendRequest,
     getFriendRequests,
     setFriendRequestsAsViewed,
