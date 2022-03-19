@@ -6,20 +6,11 @@ const userController = {
     //send user's full profile if the requester is the user
     //else it will send the profile without sensitive data
     getUser: async (req: Request, res: Response) => {
-        let user;
-        if (req.user.userRouteAuthorized) {
-            user = await User.findById(req.params.userId, {
-                password: 0,
-            });
-        } else {
-            user = await User.findById(req.params.userId, {
-                firstName: 1,
-                lastName: 1,
-                imageMini: 1,
-                posts: 1,
-                friends: 1,
-            });
-        }
+        const user = await User.findById(req.params.userId, {
+            firstName: 1,
+            lastName: 1,
+            imageFull: 1,
+        });
         if (user) {
             return res.status(200).json({ user });
         }
@@ -95,7 +86,7 @@ const userController = {
         }
         const { friendRequests } = await User.findById(req.params.userId, {
             friendRequests: 1,
-        });
+        }).populate("friendRequests.user", { _id: 1, firstName: 1, lastName: 1, imageMini: 1 });
         return res.status(200).json({
             friendRequests: friendRequests,
         });
@@ -126,13 +117,13 @@ const userController = {
                 {
                     _id: req.params.userId,
                     friendRequests: {
-                        $not: { $elemMatch: { userId: req.user?.id } },
+                        $not: { $elemMatch: { user: req.user?.id } },
                     },
                 },
                 {
                     $push: {
                         friendRequests: {
-                            userId: req.user?.id,
+                            user: req.user?.id,
                             viewed: false,
                         },
                     },
@@ -170,7 +161,7 @@ const userController = {
             },
             {
                 $pull: {
-                    friendRequests: { userId: req.params.friendId },
+                    friendRequests: { user: req.params.friendId },
                 },
             }
         );
@@ -200,7 +191,7 @@ const userController = {
     getFriends: async (req: Request, res: Response) => {
         const { friends } = await User.findById(req.params.userId, {
             friends: 1,
-        });
+        }).populate("friends", { _id: 1, firstName: 1, lastName: 1, imageMini: 1 });
         return res.status(200).json({
             friends: friends,
         });

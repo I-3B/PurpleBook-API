@@ -1,5 +1,6 @@
 import { clearDB, dbConnect, dbDisconnect } from "../src/configs/mongoConfigTesting";
 import { login, signup } from "./utils/auth.utils";
+import { addPost } from "./utils/post.utils";
 import {
     acceptFriendRequest,
     addFriendRequest,
@@ -16,23 +17,14 @@ beforeEach(async () => await clearDB());
 afterAll(async () => await dbDisconnect());
 describe("users route", () => {
     describe("getUser", () => {
-        test("should return full profile if the the user is authorized ", async () => {
-            await signup("User", 201);
-            const { userId, token } = (await login("User", 200)).body;
-
-            const { user } = (await getUser(userId, token, 200)).body;
-            //email is only sent with the full view
-            expect(user.email).toBeDefined();
-        });
-
-        test("should return the profile without sensitive info if the the user is not authorized", async () => {
+        test("should return users data", async () => {
             const { userId } = (await signup("UserOne", 201)).body;
             await signup("UserTwo", 201);
             const { token } = (await login("UserTwo", 200)).body;
 
             const { user } = (await getUser(userId, token, 200)).body;
-            //email is a sensitive profile info
-            expect(user.email).toBeUndefined();
+
+            expect(user.firstName).toBe("UserOne");
         });
     });
 
@@ -88,11 +80,7 @@ describe("users route", () => {
             await deleteUser(deletedId, deletedToken, 200);
 
             const { friendRequests } = (await getFriendRequests(FRId, FRToken, 200)).body;
-            expect(friendRequests).not.toContainEqual(
-                expect.objectContaining({
-                    userId: deletedId,
-                })
-            );
+            expect(friendRequests.length).toBe(0);
         });
 
         test("deleting a user should unfriend him from other users", async () => {
@@ -110,7 +98,13 @@ describe("users route", () => {
             expect(friends).not.toContainEqual(deletedId);
         });
 
-        test.todo("deleting a user should remove all his posts");
+        test.skip("deleting a user should remove all his posts", async () => {
+            await signup("User", 201);
+            const { userId, token } = (await login("User", 200)).body;
+            await addPost(token, 1, 201);
+
+            await deleteUser(userId, token, 200);
+        });
 
         test.todo("deleting a user should remove all his comments");
     });
@@ -118,9 +112,20 @@ describe("users route", () => {
     describe("getFriendRequests", () => {
         test("user should be able to view their friend requests", async () => {
             await signup("UserOwnFR", 201);
-            const { userId, token } = (await login("UserOwnFR", 200)).body;
+            await signup("Sender", 201);
+            const { userId: receiverId, token: receiverToken } = (await login("UserOwnFR", 200))
+                .body;
+            const { token: senderToken } = (await login("Sender", 200)).body;
 
-            await getFriendRequests(userId, token, 200);
+            await addFriendRequest(receiverId, senderToken, 200);
+
+            const { friendRequests } = (await getFriendRequests(receiverId, receiverToken, 200))
+                .body;
+            expect(friendRequests).toContainEqual(
+                expect.objectContaining({
+                    user: expect.objectContaining({ firstName: "Sender" }),
+                })
+            );
         });
 
         test("user should not be able to view another user's friend requests", async () => {
@@ -147,7 +152,7 @@ describe("users route", () => {
                 .body;
             expect(friendRequests).toContainEqual(
                 expect.objectContaining({
-                    userId: senderId,
+                    user: expect.objectContaining({ _id: senderId }),
                 })
             );
         });
@@ -227,8 +232,8 @@ describe("users route", () => {
             await signup("UserTwo", 201);
             const { userId, token } = (await login("UserTwo", 200)).body;
 
-            addFriendRequest(userId, friendToken, 200);
-            acceptFriendRequest(userId, token, friendId, 200);
+            await addFriendRequest(userId, friendToken, 200);
+            await acceptFriendRequest(userId, token, friendId, 200);
         });
 
         test("should not be able to accept a friend request if not authorized", async () => {
@@ -237,20 +242,9 @@ describe("users route", () => {
             await signup("UserTwo", 201);
             const { userId } = (await login("UserTwo", 200)).body;
 
-            addFriendRequest(userId, friendToken, 200);
+            await addFriendRequest(userId, friendToken, 200);
             const anotherUserToken = friendToken;
-            acceptFriendRequest(userId, anotherUserToken, friendId, 403);
-        });
-
-        test("should not be able to accept a non existent friend request", async () => {
-            await signup("UserOne", 201);
-            const { userId: friendId, token: friendToken } = (await login("UserOne", 200)).body;
-            await signup("UserTwo", 201);
-            const { userId, token } = (await login("UserTwo", 200)).body;
-
-            addFriendRequest(userId, friendToken, 200);
-            acceptFriendRequest(userId, token, friendId, 200);
-            acceptFriendRequest(userId, token, friendId, 400);
+            await acceptFriendRequest(userId, anotherUserToken, friendId, 403);
         });
 
         test("accepting a friend request should add friend id to user's friend list and likewise", async () => {
@@ -264,8 +258,8 @@ describe("users route", () => {
 
             const { friends: userList } = (await getFriends(userId, token, 200)).body;
             const { friends: friendList } = (await getFriends(friendId, friendToken, 200)).body;
-            expect(userList).toContainEqual(friendId);
-            expect(friendList).toContainEqual(userId);
+            expect(userList).toContainEqual(expect.objectContaining({ _id: friendId }));
+            expect(friendList).toContainEqual(expect.objectContaining({ _id: userId }));
         });
     });
 

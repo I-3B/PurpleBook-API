@@ -12,12 +12,14 @@ const User = new Schema(
             data: Buffer,
             contentType: String,
         },
-        postsLiked: [{ type: Schema.Types.ObjectId, ref: "Post" }],
-        commentsLiked: [{ type: Schema.Types.ObjectId, ref: "Comment" }],
+        imageFull: {
+            data: Buffer,
+            contentType: String,
+        },
         friends: [{ type: Schema.Types.ObjectId, ref: "User" }],
         friendRequests: [
             {
-                userId: { type: Schema.Types.ObjectId, ref: "User" },
+                user: { type: Schema.Types.ObjectId, ref: "User" },
                 viewed: Boolean,
             },
         ],
@@ -33,13 +35,13 @@ User.pre("deleteOne", { document: false, query: true }, async function () {
         this.model.updateMany(
             {
                 friendRequests: {
-                    $elemMatch: { userId: deletedUser._id },
+                    $elemMatch: { user: deletedUser._id },
                 },
             },
             {
                 $pull: {
                     friendRequests: {
-                        userId: deletedUser._id,
+                        user: deletedUser._id,
                     },
                 },
             }
