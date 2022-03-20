@@ -20,13 +20,31 @@ const getPost = (token: String, postId: String, status: Number) => {
         .set("Authorization", `Bearer ${token}`)
         .expect(status);
 };
-const deletePost = (token:String,postId:String,status:Number)=>{
+const deletePost = (token: String, postId: String, status: Number) => {
     return request(app)
         .delete(`/api/posts/${postId}`)
         .set("Authorization", `Bearer ${token}`)
         .expect(status);
-}
+};
+const addLikeToPost = (token: String, postId: String, status: Number) => {
+    return request(app)
+        .post(`/api/posts/${postId}/likes`)
+        .set("Authorization", `Bearer ${token}`)
+        .expect(status);
+};
+const getPostLikes = (token: String, postId: String, status: Number) => {
+    return request(app)
+        .get(`/api/posts/${postId}/likes`)
+        .set("Authorization", `Bearer ${token}`)
+        .expect(status);
+};
+const unlikePost = (token: String, postId: String, status: Number) => {
+    return request(app)
+        .delete(`/api/posts/${postId}/likes`)
+        .set("Authorization", `Bearer ${token}`)
+        .expect(status);
+};
 const generateCharacters = (length: number) => {
     return "a".repeat(length);
 };
-export { addPost, editPost, getPost, deletePost };
+export { addPost, editPost, getPost, deletePost, addLikeToPost, getPostLikes, unlikePost };

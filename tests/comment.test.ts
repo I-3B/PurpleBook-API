@@ -1,7 +1,15 @@
 import { clearDB, dbConnect, dbDisconnect } from "../src/configs/mongoConfigTesting";
 import { COMMENT_CHARACTERS_LIMIT } from "../src/controllers/commentController";
 import { login, signup } from "./utils/auth.utils";
-import { addComment, editComment, getAllComments } from "./utils/comment.utils";
+import {
+    addComment,
+    addLikeToComment,
+    deleteComment,
+    editComment,
+    getAllComments,
+    getCommentLikes,
+    unlikeComment,
+} from "./utils/comment.utils";
 import { addPost } from "./utils/post.utils";
 
 let token: String;
@@ -65,6 +73,23 @@ describe("comment route", () => {
             //skip = 10, the fist comment should be the 20th comment because we sorted by the newest
             expect(comments[0].content.length).toBe(20);
         });
+
+        test("likedByUser should work", async () => {
+            await signup("AnotherUser", 201);
+            const anotherUser = (await login("AnotherUser", 200)).body;
+
+            const { postId } = (await addPost(token, 1, 201)).body;
+            const { commentId } = (await addComment(token, postId, 1, 201)).body;
+            await addLikeToComment(token, postId, commentId, 200);
+
+            const { comments } = (await getAllComments(token, postId, 200)).body;
+            const { comments: anotherUserCommentsView } = (
+                await getAllComments(anotherUser.token, postId, 200)
+            ).body;
+
+            expect(comments[0].likedByUser).toBe(true);
+            expect(anotherUserCommentsView[0].likedByUser).toBe(false);
+        });
     });
 
     describe("editComment", () => {
@@ -100,6 +125,99 @@ describe("comment route", () => {
             const { postId } = (await addPost(token, 1, 201)).body;
             const nonExistentCommentId = postId;
             await editComment(token, postId, nonExistentCommentId, 1, 404);
+        });
+    });
+    describe("deleteComment", () => {
+        test("should be able to delete comment when authorized", async () => {
+            const { postId } = (await addPost(token, 1, 201)).body;
+            const { commentId } = (await addComment(token, postId, 1, 201)).body;
+            await deleteComment(token, postId, commentId, 200);
+        });
+
+        test("should not be able to delete comment when not authorized", async () => {
+            const { postId } = (await addPost(token, 1, 201)).body;
+            const nonExistentCommentId = postId;
+            await deleteComment(token, postId, nonExistentCommentId, 404);
+        });
+
+        test("should not be able to delete a nonexistent comment", async () => {
+            await signup("anotherUser", 201);
+            const { token: anotherToken } = (await login("anotherUser", 200)).body;
+
+            const { postId } = (await addPost(token, 1, 201)).body;
+            const { commentId } = (await addComment(token, postId, 1, 201)).body;
+
+            await deleteComment(anotherToken, postId, commentId, 403);
+        });
+    });
+
+    describe("addLike", () => {
+        test("adding likes to a post should work", async () => {
+            const { postId } = (await addPost(token, 1, 201)).body;
+            const { commentId } = (await addComment(token, postId, 1, 201)).body;
+            await addLikeToComment(token, postId, commentId, 200);
+        });
+
+        test("adding a like to already liked post should not work", async () => {
+            const { postId } = (await addPost(token, 1, 201)).body;
+
+            const { commentId } = (await addComment(token, postId, 1, 201)).body;
+            await addLikeToComment(token, postId, commentId, 200);
+            await addLikeToComment(token, postId, commentId, 400);
+
+            const { likes } = (await getCommentLikes(token, postId, commentId, 200)).body;
+
+            expect(likes.length).toBe(1);
+        });
+
+        test("adding a like to non existent post should not work", async () => {
+            const nonExistentPostId = userId;
+            const nonExistentCommentId = userId;
+            await addLikeToComment(token, nonExistentPostId, nonExistentCommentId, 404);
+        });
+    });
+
+    describe("getLikes", () => {
+        test("getting likes should return array of users", async () => {
+            await signup("UserOne", 201);
+            const userOne = (await login("UserOne", 200)).body;
+
+            const { postId } = (await addPost(token, 1, 201)).body;
+            const { commentId } = (await addComment(token, postId, 1, 201)).body;
+
+            await addLikeToComment(userOne.token, postId, commentId, 200);
+            await addLikeToComment(token, postId, commentId, 200);
+
+            const { likes } = (await getCommentLikes(token, postId, commentId, 200)).body;
+
+            expect(likes.length).toBe(2);
+            expect(likes).toContainEqual(expect.objectContaining({ firstName: "User" }));
+            expect(likes).toContainEqual(expect.objectContaining({ firstName: "UserOne" }));
+        });
+
+        test("should not return an array if post is not found", async () => {
+            const nonExistentPostId = userId;
+            const nonExistentCommentId = userId;
+            await getCommentLikes(token, nonExistentPostId, nonExistentCommentId, 404);
+        });
+    });
+
+    describe("unlike", () => {
+        test("should remove user like form likes array to a post", async () => {
+            await signup("UserOne", 201);
+            const userOne = (await login("UserOne", 200)).body;
+            const { postId } = (await addPost(token, 1, 201)).body;
+            const { commentId } = (await addComment(token, postId, 1, 201)).body;
+
+            await addLikeToComment(userOne.token, postId, commentId, 200);
+            await addLikeToComment(token, postId, commentId, 200);
+
+            await unlikeComment(userOne.token, postId, commentId, 200);
+            const { likes } = (await getCommentLikes(token, postId, commentId, 200)).body;
+
+            expect(likes).toContainEqual(expect.objectContaining({ firstName: "User" }));
+            expect(likes).not.toContainEqual(expect.objectContaining({ firstName: "UserOne" }));
+            expect(likes.length).toBe(1);
         });
     });
 });

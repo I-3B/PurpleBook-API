@@ -1,7 +1,7 @@
 import { clearDB, dbConnect, dbDisconnect } from "../src/configs/mongoConfigTesting";
 import { login, signup } from "./utils/auth.utils";
-import { addComment } from "./utils/comment.utils";
-import { addPost } from "./utils/post.utils";
+import { addComment, addLikeToComment } from "./utils/comment.utils";
+import { addLikeToPost, addPost } from "./utils/post.utils";
 import {
     acceptFriendRequest,
     addFriendRequest,
@@ -102,15 +102,71 @@ describe("users route", () => {
             expect(friends).not.toContainEqual(deletedId);
         });
 
-        test.skip("deleting a user should remove all his posts", async () => {
+        test("deleting a user should remove all his posts", async () => {
             await signup("User", 201);
+            await signup("AnotherUser", 201);
             const { userId, token } = (await login("User", 200)).body;
+            const anotherUser = (await login("AnotherUser", 200)).body;
             await addPost(token, 1, 201);
 
             await deleteUser(userId, token, 200);
+            const { posts } = (await getUserPosts(userId, anotherUser.token, 200)).body;
+
+            expect(posts.length).toBe(0);
         });
 
-        test.todo("deleting a user should remove all his comments");
+        test("deleting a user should remove all his comments", async () => {
+            await signup("User", 201);
+            await signup("AnotherUser", 201);
+            const { userId, token } = (await login("User", 200)).body;
+            const anotherUser = (await login("AnotherUser", 200)).body;
+
+            const { postId } = (await addPost(anotherUser.token, 1, 201)).body;
+            await addComment(token, postId, 1, 201);
+
+            await deleteUser(userId, token, 200);
+            const { posts } = (await getUserPosts(anotherUser.userId, anotherUser.token, 200)).body;
+            const { comments } = (await getUserComments(anotherUser.userId, anotherUser.token, 200))
+                .body;
+            expect(posts.length).toBe(1);
+            expect(comments.length).toBe(0);
+        });
+
+        test("deleting a user should remove his likes from all posts", async () => {
+            await signup("User", 201);
+            await signup("AnotherUser", 201);
+            const { userId, token } = (await login("User", 200)).body;
+            const anotherUser = (await login("AnotherUser", 200)).body;
+
+            const { postId } = (await addPost(anotherUser.token, 1, 201)).body;
+            await addLikeToPost(token, postId, 200);
+
+            await deleteUser(userId, token, 200);
+
+            const { posts } = (await getUserPosts(anotherUser.userId, anotherUser.token, 200)).body;
+
+            expect(posts[0].likesCount).toBe(0);
+        });
+
+        test("deleting a user should remove his likes from comments", async () => {
+            await signup("User", 201);
+            await signup("AnotherUser", 201);
+            const { userId, token } = (await login("User", 200)).body;
+            const anotherUser = (await login("AnotherUser", 200)).body;
+
+            const { postId } = (await addPost(anotherUser.token, 1, 201)).body;
+            const { commentId } = (await addComment(anotherUser.token, postId, 1, 201)).body;
+            await addLikeToComment(token, postId, commentId, 200);
+
+            await deleteUser(userId, token, 200);
+
+            const { posts } = (await getUserPosts(anotherUser.userId, anotherUser.token, 200)).body;
+            const { comments } = (await getUserComments(anotherUser.userId, anotherUser.token, 200))
+                .body;
+
+            expect(posts[0].commentsCount).toBe(1);
+            expect(comments[0].likesCount).toBe(0);
+        });
     });
     describe("getPosts", () => {
         test("should retrieve users posts", async () => {
@@ -118,7 +174,46 @@ describe("users route", () => {
             const { userId, token } = (await login("User", 200)).body;
             await addPost(token, 1, 201);
 
-            await getUserPosts(userId, token, 200);
+            const { posts } = (await getUserPosts(userId, token, 200)).body;
+            expect(posts[0].content).toBe("a");
+        });
+
+        test("should return correct likes count", async () => {
+            await signup("User", 201);
+            const { userId, token } = (await login("User", 200)).body;
+            const { postId } = (await addPost(token, 1, 201)).body;
+            await addLikeToPost(token, postId, 200);
+            const { posts } = (await getUserPosts(userId, token, 200)).body;
+            expect(posts[0].likesCount).toBe(1);
+        });
+
+        test("should return correct comments count", async () => {
+            await signup("User", 201);
+            const { userId, token } = (await login("User", 200)).body;
+            const { postId } = (await addPost(token, 1, 201)).body;
+            await addComment(token, postId, 1, 201);
+            await addComment(token, postId, 1, 201);
+
+            const { posts } = (await getUserPosts(userId, token, 200)).body;
+            expect(posts[0].commentsCount).toBe(2);
+        });
+
+        test("likedByUser should work", async () => {
+            await signup("User", 201);
+            await signup("AnotherUser", 201);
+            const { userId, token } = (await login("User", 200)).body;
+            const anotherUser = (await login("AnotherUser", 200)).body;
+
+            const { postId } = (await addPost(token, 1, 201)).body;
+            await addLikeToPost(token, postId, 200);
+
+            const { posts } = (await getUserPosts(userId, token, 200)).body;
+            const { posts: anotherUserPostView } = (
+                await getUserPosts(userId, anotherUser.token, 200)
+            ).body;
+
+            expect(posts[0].likedByUser).toBe(true);
+            expect(anotherUserPostView[0].likedByUser).toBe(false);
         });
     });
     describe("getComments", () => {

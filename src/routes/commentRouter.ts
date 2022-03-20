@@ -9,4 +9,8 @@ router.get("/", commentController.getAllComments);
 router.patch("/:commentId", commentFindAndAuthorize, commentController.editComment);
 router.delete("/:commentId", commentFindAndAuthorize, commentController.deleteComment);
 
+router.post("/:commentId/likes", commentController.addLike);
+router.get("/:commentId/likes", commentController.getLikes);
+router.delete("/:commentId/likes", commentController.unlike);
+
 export default router;

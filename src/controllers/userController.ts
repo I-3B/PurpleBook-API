@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
 import { body, validationResult } from "express-validator";
-import mongoose from "mongoose";
+import mongoose, { ObjectId } from "mongoose";
 import Comment from "../models/Comment";
 import Post from "../models/Post";
 import User from "../models/User";
+import { addLikedByUserFieldAndRemoveLikesField } from "../utils/manipulateModel";
 
 const userController = {
     //send user's full profile if the requester is the user
@@ -41,6 +42,7 @@ const userController = {
             const errors = validationResult(req);
             const files = req.files as Express.Multer.File[];
             const imageMini = files[0] ? files[0] : { buffer: "", mimetype: "" };
+            //TODO imageMini
             if (!errors.isEmpty()) {
                 return res.status(400).json({
                     errors: [...errors.array()],
@@ -102,18 +104,17 @@ const userController = {
                     image: 1,
                     likes: 1,
                     likesCount: { $size: "$likes" },
-                    commentCount: { $size: "$comments" },
+                    commentsCount: { $size: "$comments" },
                     createdAt: 1,
                     updatedAt: 1,
                 },
             },
         ]);
-        posts.map((post: { likes: Array<String> }) => {
-            if (post.likes.includes(req.user.id)) {
-                //TODO add likedByUser after adding likes route
-            }
+        const editedPosts = posts.map((post: { likes: Array<ObjectId>; likedByUser?: boolean }) => {
+            return addLikedByUserFieldAndRemoveLikesField(post, req.user.id);
         });
-        return res.status(200).json({ posts });
+
+        return res.status(200).json({ posts: editedPosts });
     },
     getComments: async (req: Request, res: Response) => {
         const comments = await Comment.aggregate([
@@ -135,6 +136,7 @@ const userController = {
                         {
                             $project: {
                                 _id: 1,
+                                imagePreview: 1,
                                 postAuthorFirstName: "$postAuthor.firstName",
                                 contentPreview: { $substr: ["$content", 0, 60] },
                             },

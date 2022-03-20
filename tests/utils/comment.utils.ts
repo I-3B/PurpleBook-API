@@ -27,8 +27,42 @@ const editComment = (
         .send({ content: generateCharacters(commentLength) })
         .expect(status);
 };
+const deleteComment = (token: String, postId: String, commentId: String, status: Number) => {
+    return request(app)
+        .delete(`/api/posts/${postId}/comments/${commentId}`)
+        .set("Authorization", `Bearer ${token}`)
+        .expect(status);
+};
 
+const addLikeToComment = (token: String, postId: String, commentId: String, status: Number) => {
+    return request(app)
+        .post(`/api/posts/${postId}/comments/${commentId}/likes`)
+        .set("Authorization", `Bearer ${token}`)
+        .expect(status);
+};
+
+const getCommentLikes = (token: String, postId: String, commentId: String, status: Number) => {
+    return request(app)
+        .get(`/api/posts/${postId}/comments/${commentId}/likes`)
+        .set("Authorization", `Bearer ${token}`)
+        .expect(status);
+};
+
+const unlikeComment = (token: String, postId: String, commentId: String, status: Number) => {
+    return request(app)
+        .delete(`/api/posts/${postId}/comments/${commentId}/likes`)
+        .set("Authorization", `Bearer ${token}`)
+        .expect(status);
+};
 const generateCharacters = (length: number) => {
     return "b".repeat(length);
 };
-export { addComment, getAllComments, editComment };
+export {
+    addComment,
+    getAllComments,
+    editComment,
+    deleteComment,
+    addLikeToComment,
+    getCommentLikes,
+    unlikeComment,
+};

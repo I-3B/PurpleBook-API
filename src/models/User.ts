@@ -28,6 +28,10 @@ const User = new Schema(
     { timestamps: true }
 );
 User.pre("deleteOne", { document: false, query: true }, async function () {
+    //when user is deleted:
+    //delete all his posts and comments
+    //remove him from other users friend lists and remove his friend requests
+    //remove all his likes on posts and comments
     const deletedUser = await this.model.findOne(this.getFilter());
     await Promise.all([
         Post.deleteMany({ authorId: deletedUser._id }),
@@ -53,6 +57,22 @@ User.pre("deleteOne", { document: false, query: true }, async function () {
             {
                 $pull: {
                     friends: deletedUser._id,
+                },
+            }
+        ),
+        Post.updateMany(
+            { likes: deletedUser._id },
+            {
+                $pull: {
+                    likes: deletedUser._id,
+                },
+            }
+        ),
+        Comment.updateMany(
+            { likes: deletedUser._id },
+            {
+                $pull: {
+                    likes: deletedUser._id,
                 },
             }
         ),
