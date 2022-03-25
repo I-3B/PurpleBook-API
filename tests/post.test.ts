@@ -7,6 +7,7 @@ import {
     addPost,
     deletePost,
     editPost,
+    getFeed,
     getPost,
     getPostLikes,
     unlikePost,
@@ -177,6 +178,30 @@ describe("post route", () => {
             expect(likes).toContainEqual(expect.objectContaining({ firstName: "User" }));
             expect(likes).not.toContainEqual(expect.objectContaining({ firstName: "UserOne" }));
             expect(likes.length).toBe(1);
+        });
+    });
+    describe.only("feed", () => {
+        test("should get feed after adding a post", async () => {
+            const { postId } = (await addPost(token, 1, 201)).body;
+
+            const { posts } = (await getFeed(token, "", 200)).body;
+            expect(posts).toContainEqual(expect.objectContaining({ _id: postId }));
+        });
+        test("should be descending in date", async () => {
+            (await addPost(token, 1, 201)).body;
+            const { postId } = (await addPost(token, 1, 201)).body;
+
+            const { posts } = (await getFeed(token, "", 200)).body;
+            expect(posts[0]).toMatchObject({ _id: postId });
+        });
+        test("likedByUser should work", async () => {
+            const { postId } = (await addPost(token, 1, 201)).body;
+            const { postId: postNotLikedId } = (await addPost(token, 1, 201)).body;
+            await addLikeToPost(token, postId, 200);
+
+            const { posts } = (await getFeed(token, "", 200)).body;
+            expect(posts[1]).toMatchObject({ _id: postId, likedByUser: true });
+            expect(posts[0]).toMatchObject({ _id: postNotLikedId, likedByUser: false });
         });
     });
 });

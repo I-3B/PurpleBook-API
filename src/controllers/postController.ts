@@ -2,10 +2,64 @@ import { Request, Response } from "express";
 import { body, validationResult } from "express-validator";
 import mongoose, { ObjectId } from "mongoose";
 import Post from "../models/Post";
+import User from "../models/User";
 import { addLikedByUserFieldAndRemoveLikesField } from "../utils/manipulateModel";
 export const POST_CHARACTERS_LIMIT = 5000;
 const postController = {
-    getFeed: async (req: Request, res: Response) => {},
+    getFeed: async (req: Request, res: Response) => {
+        const { limit, skip } = req.query;
+        const limitInt = parseInt(limit + "");
+        const skipInt = parseInt(skip + "");
+        const limitValue = isNaN(limitInt) ? 20 : limitInt;
+        const skipValue = isNaN(skipInt) ? 0 : skipInt;
+
+        const { friends } = await User.findOne({ _id: req.user.id }, { friends: 1 });
+        const matchPostAuthors = [req.user.id, ...friends];
+        const matchPostAuthorsAsObjectId = matchPostAuthors.map((authorId) => {
+            return new mongoose.Types.ObjectId(authorId);
+        });
+        const posts = await Post.aggregate([
+            {
+                $match: {
+                    authorId: { $in: matchPostAuthorsAsObjectId },
+                },
+            },
+            { $sort: { createdAt: -1 } },
+            { $limit: skipValue + limitValue },
+            { $skip: skipValue },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "authorId",
+                    foreignField: "_id",
+                    as: "author",
+                },
+            },
+            {
+                $lookup: {
+                    from: "comments",
+                    localField: "_id",
+                    foreignField: "postId",
+                    as: "comments",
+                },
+            },
+            {
+                $project: {
+                    author: { _id: 1, firstName: 1, lastName: 1, imageMini: 1 },
+                    content: 1,
+                    likes: 1,
+                    likesCount: { $size: "$likes" },
+                    commentsCount: { $size: "$comments" },
+                    createdAt: 1,
+                    updatedAt: 1,
+                },
+            },
+        ]);
+        const editedPosts = posts.map((post) => {
+            return addLikedByUserFieldAndRemoveLikesField(post, req.user.id);
+        });
+        return res.status(200).json({ posts: editedPosts });
+    },
 
     addPost: [
         body("content")
