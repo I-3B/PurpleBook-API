@@ -1,5 +1,6 @@
 import { clearDB, dbConnect, dbDisconnect } from "../src/configs/mongoConfigTesting";
-import { login, signup } from "./utils/auth.utils";
+import User from "../src/models/User";
+import { login, signup, signupWithImage } from "./utils/auth.utils";
 import { addComment, addLikeToComment } from "./utils/comment.utils";
 import { addLikeToPost, addPost } from "./utils/post.utils";
 import {
@@ -9,6 +10,7 @@ import {
     deleteFriendRequest,
     deleteUser,
     editUser,
+    editUserWithImage,
     getFriendRequests,
     getFriends,
     getUser,
@@ -48,6 +50,30 @@ describe("users route", () => {
 
             const { user } = (await editUser("AfterEdit", userId, token, 403)).body;
             expect(user).toBeUndefined();
+        });
+
+        test("editing user with image should work", async () => {
+            await signup("User", 201);
+            const { token, userId } = (await login("User", 200)).body;
+
+            let user = await User.findOne({ firstName: "User" });
+
+            expect(user.imageMini.data.length).toBe(0);
+
+            await editUserWithImage("edited", userId, token, "/images/profilePicture.png", 200);
+
+            user = await User.findOne({ firstName: "edited" });
+
+            expect(user.imageMini.data.length).toBeGreaterThan(0);
+        });
+
+        test("editing user without uploading new image should not remove the old one", async () => {
+            await signupWithImage("User", "/images/profilePicture.png", 201);
+            const { token, userId } = (await login("User", 200)).body;
+
+            await editUser("edited", userId, token, 200);
+            const user = await User.findOne({ firstName: "edited" });
+            expect(user.imageMini.data.length).toBeGreaterThan(0);
         });
     });
     describe("deleteUser", () => {

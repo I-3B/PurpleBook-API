@@ -1,5 +1,5 @@
 import { clearDB, dbConnect, dbDisconnect } from "../src/configs/mongoConfigTesting";
-import { login, signup } from "./utils/auth.utils";
+import { login, signup, signupWithImage } from "./utils/auth.utils";
 beforeAll(async () => await dbConnect());
 beforeEach(async () => await clearDB());
 afterAll(async () => await dbDisconnect());
@@ -8,6 +8,9 @@ describe("auth route", () => {
     describe("signup", () => {
         test("new user signup should work", async () => {
             await signup("User", 201);
+        });
+        test("new user signup should work with image", async () => {
+            await signupWithImage("User", "/images/profilePicture.png", 201);
         });
         test("should reject duplicate email", async () => {
             await signup("User", 201);

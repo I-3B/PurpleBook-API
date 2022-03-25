@@ -5,6 +5,7 @@ import Comment from "../models/Comment";
 import Post from "../models/Post";
 import User from "../models/User";
 import { addLikedByUserFieldAndRemoveLikesField } from "../utils/manipulateModel";
+import { createProfilePicture, isImage } from "../utils/processImage";
 
 const userController = {
     //send user's full profile if the requester is the user
@@ -41,8 +42,10 @@ const userController = {
             if (!req.user.userRouteAuthorized) return res.sendStatus(403);
             const errors = validationResult(req);
             const files = req.files as Express.Multer.File[];
-            const imageMini = files[0] ? files[0] : { buffer: "", mimetype: "" };
-            //TODO imageMini
+            const imageBuffer = files[0] ? files[0].buffer : Buffer.from("");
+            const imageMimetype = files[0] ? files[0].mimetype : "";
+            const isImageCorrect = await isImage(imageBuffer);
+            const profilePicture = await createProfilePicture(imageBuffer);
             if (!errors.isEmpty()) {
                 return res.status(400).json({
                     errors: [...errors.array()],
@@ -53,10 +56,16 @@ const userController = {
                     {
                         firstName: req.body.firstName,
                         lastName: req.body.lastName,
-                        imageMini: {
-                            data: imageMini.buffer,
-                            contentType: imageMini.mimetype,
-                        },
+                        ...(isImageCorrect && {
+                            imageMini: {
+                                data: profilePicture.mini,
+                                contentType: imageMimetype,
+                            },
+                            imageFull: {
+                                data: profilePicture.full,
+                                contentType: imageMimetype,
+                            },
+                        }),
                     },
                     {
                         new: true,

@@ -4,6 +4,7 @@ import { body, validationResult } from "express-validator";
 import jwt from "jsonwebtoken";
 import User from "../models/User";
 import isEmailUsed from "../utils/isEmailUsed";
+import { createProfilePicture } from "../utils/processImage";
 const authController = {
     login: [
         body("email").exists().isEmail().withMessage("Wrong email format.").escape(),
@@ -79,7 +80,9 @@ const authController = {
         async (req: Request, res: Response, next: NextFunction) => {
             const errors = validationResult(req);
             const files = req.files as Express.Multer.File[];
-            const imageMini = files[0] ? files[0] : { buffer: "", mimetype: "" };
+            const imageBuffer = files[0] ? files[0].buffer : Buffer.from("");
+            const imageMimetype = files[0] ? files[0].mimetype : "";
+            const profilePicture = await createProfilePicture(imageBuffer);
             if (!errors.isEmpty()) {
                 return res.status(400).json({
                     errors: [...errors.array()],
@@ -106,8 +109,12 @@ const authController = {
                             password: hashedPassword,
                             email: req.body.email,
                             imageMini: {
-                                data: imageMini.buffer,
-                                contentType: imageMini.mimetype,
+                                data: profilePicture.mini,
+                                contentType: imageMimetype,
+                            },
+                            imageFull: {
+                                data: profilePicture.full,
+                                contentType: imageMimetype,
                             },
                         });
                         if (user)
