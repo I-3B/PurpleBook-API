@@ -4,6 +4,7 @@ import mongoose, { ObjectId } from "mongoose";
 import Post from "../models/Post";
 import User from "../models/User";
 import { addLikedByUserFieldAndRemoveLikesField } from "../utils/manipulateModel";
+import { createPostImage, isImage } from "../utils/processImage";
 export const POST_CHARACTERS_LIMIT = 5000;
 const postController = {
     getFeed: async (req: Request, res: Response) => {
@@ -47,6 +48,7 @@ const postController = {
                 $project: {
                     author: { _id: 1, firstName: 1, lastName: 1, imageMini: 1 },
                     content: 1,
+                    image: 1,
                     likes: 1,
                     likesCount: { $size: "$likes" },
                     commentsCount: { $size: "$comments" },
@@ -67,16 +69,30 @@ const postController = {
             .isLength({ max: POST_CHARACTERS_LIMIT })
             .withMessage(`post content can not be more than ${POST_CHARACTERS_LIMIT} characters`),
         async (req: Request, res: Response) => {
-            //TODO post image
-            const errors = validationResult(req);
-            if (!errors.isEmpty()) {
-                return res.status(400).json({
-                    errors: [...errors.array()],
+            const files = req.files as Express.Multer.File[];
+            const imageBuffer = files[0] ? files[0].buffer : Buffer.from("");
+            const imageMimetype = files[0] ? files[0].mimetype : "";
+            const isFileImage = await isImage(imageBuffer);
+
+            const errors = validationResult(req).array();
+            if (!isFileImage && req.body.content.length == 0) {
+                errors.push({
+                    value: "",
+                    msg: "content cannot be empty if post does not contain an image",
+                    param: "content",
+                    location: "body",
                 });
             }
+            if (errors.length > 0) {
+                return res.status(400).json({
+                    errors: errors,
+                });
+            }
+            const image = await createPostImage(imageBuffer);
             const post = await Post.create({
                 authorId: req.user.id,
                 content: req.body.content,
+                image: { data: image.full, contentType: imageMimetype },
             });
             return res.status(201).json({
                 postId: post._id,

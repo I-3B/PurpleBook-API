@@ -16,5 +16,17 @@ const createProfilePicture = async (imageBuffer: Buffer) => {
     }
     return profilePicture;
 };
+const createPostImage = async (imageBuffer: Buffer) => {
+    const postImage = { full: Buffer.from(""), preview: Buffer.from("") };
+    if (await isImage(imageBuffer)) {
+        postImage.full = await sharp(imageBuffer)
+            .resize(768, 768, {
+                withoutEnlargement: true,
+                fit: "inside",
+            })
+            .toBuffer();
+    }
+    return postImage;
+};
 
-export { createProfilePicture, isImage };
+export { createProfilePicture, isImage, createPostImage };

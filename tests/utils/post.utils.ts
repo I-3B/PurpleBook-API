@@ -1,3 +1,4 @@
+import path from "path";
 import request from "supertest";
 import app from "../app";
 const addPost = (token: String, postLength: number, status: Number) => {
@@ -5,6 +6,14 @@ const addPost = (token: String, postLength: number, status: Number) => {
         .post("/api/posts")
         .set("Authorization", `Bearer ${token}`)
         .field("content", generateCharacters(postLength))
+        .expect(status);
+};
+const addPostWithImage = (token: String, postLength: number, image: string, status: Number) => {
+    return request(app)
+        .post("/api/posts")
+        .set("Authorization", `Bearer ${token}`)
+        .field("content", generateCharacters(postLength))
+        .attach("image.png", path.join(__dirname, image))
         .expect(status);
 };
 const editPost = (token: String, postId: String, postLength: number, status: Number) => {
@@ -53,4 +62,14 @@ const getFeed = (token: String, query: String, status: Number) => {
 const generateCharacters = (length: number) => {
     return "a".repeat(length);
 };
-export { addPost, editPost, getPost, deletePost, addLikeToPost, getPostLikes, unlikePost, getFeed };
+export {
+    addPost,
+    addPostWithImage,
+    editPost,
+    getPost,
+    deletePost,
+    addLikeToPost,
+    getPostLikes,
+    unlikePost,
+    getFeed,
+};

@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 const Post = new Schema(
     {
         authorId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-        content: { type: String, required: true },
+        content: { type: String, required: requireString },
         image: { data: Buffer, contentType: String },
         likes: [{ type: Schema.Types.ObjectId, ref: "User" }],
     },
@@ -21,4 +21,7 @@ Post.pre("deleteMany", { document: false, query: true }, async function (next) {
     await Comment.deleteMany({ postId: { $in: postIds } });
     next();
 });
+function requireString(this: { content: String }) {
+    return typeof this.content === "string" ? false : true;
+}
 export default mongoose.model("Post", Post);

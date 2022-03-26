@@ -1,10 +1,13 @@
+import sharp from "sharp";
 import { clearDB, dbConnect, dbDisconnect } from "../src/configs/mongoConfigTesting";
 import { POST_CHARACTERS_LIMIT } from "../src/controllers/postController";
+import Post from "../src/models/Post";
 import { login, signup } from "./utils/auth.utils";
 import { addComment, getAllComments } from "./utils/comment.utils";
 import {
     addLikeToPost,
     addPost,
+    addPostWithImage,
     deletePost,
     editPost,
     getFeed,
@@ -33,6 +36,25 @@ describe("post route", () => {
 
         test("submitted post with content more than the characters limit should not work", async () => {
             await addPost(token, POST_CHARACTERS_LIMIT + 1, 400);
+        });
+        test("adding post with image should work", async () => {
+            const { postId } = (await addPostWithImage(token, 1, "images/postImage.png", 201)).body;
+            const post = await Post.findOne({ _id: postId });
+
+            expect(post.image).toBeDefined();
+
+            const { height, width } = await sharp(post.image.data).metadata();
+
+            expect(height).toBeLessThanOrEqual(768);
+            expect(width).toBeLessThanOrEqual(768);
+        });
+
+        test("adding an image without content should work", async () => {
+            await addPostWithImage(token, 0, "images/postImage.png", 201);
+        });
+
+        test("post without content and image should not work", async () => {
+            await addPost(token, 0, 400);
         });
     });
 
@@ -180,7 +202,7 @@ describe("post route", () => {
             expect(likes.length).toBe(1);
         });
     });
-    describe.only("feed", () => {
+    describe("feed", () => {
         test("should get feed after adding a post", async () => {
             const { postId } = (await addPost(token, 1, 201)).body;
 
