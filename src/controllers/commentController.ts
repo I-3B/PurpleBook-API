@@ -4,6 +4,7 @@ import mongoose, { ObjectId, PipelineStage } from "mongoose";
 import Comment from "../models/Comment";
 import Post from "../models/Post";
 import { addLikedByUserFieldAndRemoveLikesField } from "../utils/manipulateModel";
+import notificationHandler from "../utils/notificationHandler";
 export const COMMENT_CHARACTERS_LIMIT = 2500;
 const commentController = {
     addComment: [
@@ -28,6 +29,7 @@ const commentController = {
                 postId: postId,
                 content: req.body.content,
             });
+            await notificationHandler.postCommentedOn(req.user.id,postId,comment._id)
             return res.status(201).json({
                 commentId: comment._id,
             });
@@ -118,6 +120,11 @@ const commentController = {
             if (commentFound) return res.sendStatus(400);
             else return res.sendStatus(404);
         }
+        await notificationHandler.commentLiked(
+            req.user.id,
+            req.params.postId,
+            req.params.commentId
+        );
         return res.sendStatus(200);
     },
     getLikes: async (req: Request, res: Response) => {

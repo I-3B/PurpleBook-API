@@ -4,6 +4,7 @@ import mongoose, { ObjectId } from "mongoose";
 import Post from "../models/Post";
 import User from "../models/User";
 import { addLikedByUserFieldAndRemoveLikesField } from "../utils/manipulateModel";
+import notificationHandler from "../utils/notificationHandler";
 import { createPostImage, isImage } from "../utils/processImage";
 export const POST_CHARACTERS_LIMIT = 5000;
 const postController = {
@@ -170,6 +171,8 @@ const postController = {
             if (postFound) return res.sendStatus(400);
             else return res.sendStatus(404);
         }
+        await notificationHandler.postLiked(req.user.id, req.params.postId);
+
         return res.sendStatus(200);
     },
     getLikes: async (req: Request, res: Response) => {

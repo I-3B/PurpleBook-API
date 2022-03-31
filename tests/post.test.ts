@@ -4,6 +4,7 @@ import { POST_CHARACTERS_LIMIT } from "../src/controllers/postController";
 import Post from "../src/models/Post";
 import { login, signup } from "./utils/auth.utils";
 import { addComment, getAllComments } from "./utils/comment.utils";
+import { getNotifications } from "./utils/notification.utils";
 import {
     addLikeToPost,
     addPost,
@@ -152,13 +153,37 @@ describe("post route", () => {
             await addLikeToPost(token, postId, 400);
 
             const { likes } = (await getPostLikes(token, postId, 200)).body;
-
             expect(likes.length).toBe(1);
         });
 
         test("adding a like to non existent post should not work", async () => {
             const nonExistentPostId = userId;
             await addLikeToPost(token, nonExistentPostId, 404);
+        });
+
+        test("adding a like should notify post author", async () => {
+            await signup("likeSender", 201);
+            const likeSender = (await login("likeSender", 200)).body;
+
+            const { postId } = (await addPost(token, 1, 201)).body;
+            await addLikeToPost(likeSender.token, postId, 200);
+
+            const { notifications } = (await getNotifications(token)).body;
+
+            expect(notifications[0].links).toContainEqual(
+                expect.objectContaining({ linkId: postId, ref: "Post" })
+            );
+            expect(notifications[0].links).toContainEqual(
+                expect.objectContaining({ linkId: likeSender.userId, ref: "User" })
+            );
+        });
+
+        test("adding a like as author should not send a notification", async () => {
+            const { postId } = (await addPost(token, 1, 201)).body;
+            await addLikeToPost(token, postId, 200);
+
+            const { notifications } = (await getNotifications(token)).body;
+            expect(notifications.length).toBe(0);
         });
     });
 

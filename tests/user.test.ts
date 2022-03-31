@@ -2,6 +2,7 @@ import { clearDB, dbConnect, dbDisconnect } from "../src/configs/mongoConfigTest
 import User from "../src/models/User";
 import { login, signup, signupWithImage } from "./utils/auth.utils";
 import { addComment, addLikeToComment } from "./utils/comment.utils";
+import { getNotifications } from "./utils/notification.utils";
 import { addLikeToPost, addPost } from "./utils/post.utils";
 import {
     acceptFriendRequest,
@@ -422,6 +423,22 @@ describe("users route", () => {
             const { friends: friendList } = (await getFriends(friendId, friendToken, 200)).body;
             expect(userList).toContainEqual(expect.objectContaining({ _id: friendId }));
             expect(friendList).toContainEqual(expect.objectContaining({ _id: userId }));
+        });
+
+        test("accepting friend request should notify the sender", async () => {
+            await signup("User", 201);
+            const { userId, token } = (await login("User", 200)).body;
+            await signup("Friend", 201);
+            const { userId: friendId, token: friendToken } = (await login("Friend", 200)).body;
+
+            await addFriendRequest(userId, friendToken, 200);
+            await acceptFriendRequest(userId, token, friendId, 200);
+
+            const { notifications } = (await getNotifications(friendToken)).body;
+
+            expect(notifications[0].links).toContainEqual(
+                expect.objectContaining({ linkId: userId, ref: "User" })
+            );
         });
     });
 

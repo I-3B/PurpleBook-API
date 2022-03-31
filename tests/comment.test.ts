@@ -10,6 +10,7 @@ import {
     getCommentLikes,
     unlikeComment,
 } from "./utils/comment.utils";
+import { getNotifications } from "./utils/notification.utils";
 import { addPost } from "./utils/post.utils";
 
 let token: String;
@@ -44,6 +45,34 @@ describe("comment route", () => {
             const nonExistentPostId = userId;
 
             await addComment(token, nonExistentPostId, 1, 404);
+        });
+
+        test("should send a notification to post author", async () => {
+            await signup("commenter", 201);
+            const commenter = (await login("commenter", 200)).body;
+            const { postId } = (await addPost(token, 1, 201)).body;
+            const { commentId } = (await addComment(commenter.token, postId, 1, 201)).body;
+
+            const { notifications } = (await getNotifications(token)).body;
+
+            expect(notifications[0].links).toContainEqual(
+                expect.objectContaining({ linkId: commenter.userId, ref: "User" })
+            );
+            expect(notifications[0].links).toContainEqual(
+                expect.objectContaining({ linkId: commentId, ref: "Comment" })
+            );
+            expect(notifications[0].links).toContainEqual(
+                expect.objectContaining({ linkId: postId, ref: "Post" })
+            );
+        });
+
+        test("should not send a notification if the commenter is the post author", async () => {
+            const { postId } = (await addPost(token, 1, 201)).body;
+            const { commentId } = (await addComment(token, postId, 1, 201)).body;
+
+            const { notifications } = (await getNotifications(token)).body;
+
+            expect(notifications.length).toBe(0);
         });
     });
 
@@ -174,6 +203,35 @@ describe("comment route", () => {
             const nonExistentPostId = userId;
             const nonExistentCommentId = userId;
             await addLikeToComment(token, nonExistentPostId, nonExistentCommentId, 404);
+        });
+
+        test("adding a like should notify comment author", async () => {
+            await signup("likeSender", 201);
+            const likeSender = (await login("likeSender", 200)).body;
+
+            const { postId } = (await addPost(token, 1, 201)).body;
+            const { commentId } = (await addComment(token, postId, 1, 201)).body;
+            await addLikeToComment(likeSender.token, postId, commentId, 200);
+
+            const { notifications } = (await getNotifications(token)).body;
+            expect(notifications[0].links).toContainEqual(
+                expect.objectContaining({ linkId: postId, ref: "Post" })
+            );
+            expect(notifications[0].links).toContainEqual(
+                expect.objectContaining({ linkId: commentId, ref: "Comment" })
+            );
+            expect(notifications[0].links).toContainEqual(
+                expect.objectContaining({ linkId: likeSender.userId, ref: "User" })
+            );
+        });
+
+        test("adding a like as author should not send a notification ", async () => {
+            const { postId } = (await addPost(token, 1, 201)).body;
+            const { commentId } = (await addComment(token, postId, 1, 201)).body;
+            await addLikeToComment(token, postId, commentId, 200);
+
+            const { notifications } = (await getNotifications(token)).body;
+            expect(notifications.length).toBe(0);
         });
     });
 

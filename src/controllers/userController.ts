@@ -5,6 +5,7 @@ import Comment from "../models/Comment";
 import Post from "../models/Post";
 import User from "../models/User";
 import { addLikedByUserFieldAndRemoveLikesField } from "../utils/manipulateModel";
+import notificationHandler from "../utils/notificationHandler";
 import { createProfilePicture, isImage } from "../utils/processImage";
 
 const userController = {
@@ -298,6 +299,7 @@ const userController = {
             ]);
         });
         await session.endSession();
+        await notificationHandler.friendRequestAccepted(req.user.id, req.params.friendId);
         return res.sendStatus(200);
     },
 
