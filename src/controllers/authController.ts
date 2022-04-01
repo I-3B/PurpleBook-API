@@ -3,7 +3,6 @@ import { NextFunction, Request, Response } from "express";
 import { body, validationResult } from "express-validator";
 import jwt from "jsonwebtoken";
 import User from "../models/User";
-import isEmailUsed from "../utils/isEmailUsed";
 import { createProfilePicture } from "../utils/processImage";
 import { validateFirstAndLastName } from "../utils/validateForm";
 const authController = {
@@ -113,5 +112,8 @@ const authController = {
         },
     ],
 };
-
+const isEmailUsed = async (email: String) => {
+    const found = await User.findOne({ email });
+    return !!found;
+};
 export default authController;
