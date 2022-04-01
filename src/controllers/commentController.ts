@@ -1,19 +1,14 @@
 import { Request, Response } from "express";
-import { body, validationResult } from "express-validator";
+import { validationResult } from "express-validator";
 import mongoose, { ObjectId, PipelineStage } from "mongoose";
 import Comment from "../models/Comment";
 import Post from "../models/Post";
 import { addLikedByUserFieldAndRemoveLikesField } from "../utils/manipulateModel";
 import notificationHandler from "../utils/notificationHandler";
-export const COMMENT_CHARACTERS_LIMIT = 2500;
+import { validateCommentContent } from "../utils/validateForm";
 const commentController = {
     addComment: [
-        body("content")
-            .trim()
-            .isLength({ max: COMMENT_CHARACTERS_LIMIT })
-            .withMessage(
-                `comment content can not be more than ${COMMENT_CHARACTERS_LIMIT} characters`
-            ),
+        validateCommentContent,
         async (req: Request, res: Response) => {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
@@ -29,7 +24,7 @@ const commentController = {
                 postId: postId,
                 content: req.body.content,
             });
-            await notificationHandler.postCommentedOn(req.user.id,postId,comment._id)
+            await notificationHandler.postCommentedOn(req.user.id, postId, comment._id);
             return res.status(201).json({
                 commentId: comment._id,
             });
@@ -81,12 +76,7 @@ const commentController = {
         });
     },
     editComment: [
-        body("content")
-            .trim()
-            .isLength({ max: COMMENT_CHARACTERS_LIMIT })
-            .withMessage(
-                `comment content can not be more than ${COMMENT_CHARACTERS_LIMIT} characters`
-            ),
+        validateCommentContent,
         async (req: Request, res: Response) => {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {

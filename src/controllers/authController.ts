@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User";
 import isEmailUsed from "../utils/isEmailUsed";
 import { createProfilePicture } from "../utils/processImage";
+import { validateFirstAndLastName } from "../utils/validateForm";
 const authController = {
     login: [
         body("email").exists().isEmail().withMessage("Wrong email format.").escape(),
@@ -54,29 +55,14 @@ const authController = {
         // do something with req.user
     },
     signup: [
-        body("firstName")
-            .exists()
-            .trim()
-            .isAlpha()
-            .withMessage("First name can only be alphabetic.")
-            .isLength({ min: 1, max: 20 })
-            .withMessage("First name cannot be empty or more than 20 characters.")
-            .escape(),
-        body("lastName")
-            .exists()
-            .trim()
-            .isAlpha()
-            .withMessage("Last name can only be alphabetic.")
-            .isLength({ min: 1, max: 20 })
-            .withMessage("Last name cannot be empty or more than 20 characters.")
-            .escape(),
+        ...validateFirstAndLastName,
+        body("email").exists().trim().isEmail().withMessage("Wrong email format.").escape(),
         body("password")
             .exists()
             .trim()
             .isLength({ min: 8, max: 32 })
             .withMessage("password cannot be less than 8 or more then 32 characters.")
             .escape(),
-        body("email").exists().isEmail().withMessage("Wrong email format.").escape(),
         async (req: Request, res: Response, next: NextFunction) => {
             const errors = validationResult(req);
             const files = req.files as Express.Multer.File[];

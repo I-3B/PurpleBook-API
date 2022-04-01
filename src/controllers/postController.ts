@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import { body, validationResult } from "express-validator";
+import { validationResult } from "express-validator";
 import mongoose, { ObjectId } from "mongoose";
 import Post from "../models/Post";
 import User from "../models/User";
 import { addLikedByUserFieldAndRemoveLikesField } from "../utils/manipulateModel";
 import notificationHandler from "../utils/notificationHandler";
 import { createPostImage, isImage } from "../utils/processImage";
-export const POST_CHARACTERS_LIMIT = 5000;
+import { validatePostContent } from "../utils/validateForm";
 const postController = {
     getFeed: async (req: Request, res: Response) => {
         const { limit, skip } = req.query;
@@ -65,10 +65,7 @@ const postController = {
     },
 
     addPost: [
-        body("content")
-            .trim()
-            .isLength({ max: POST_CHARACTERS_LIMIT })
-            .withMessage(`post content can not be more than ${POST_CHARACTERS_LIMIT} characters`),
+        validatePostContent,
         async (req: Request, res: Response) => {
             const files = req.files as Express.Multer.File[];
             const imageBuffer = files[0] ? files[0].buffer : Buffer.from("");
@@ -136,10 +133,7 @@ const postController = {
         });
     },
     editPost: [
-        body("content")
-            .trim()
-            .isLength({ max: POST_CHARACTERS_LIMIT })
-            .withMessage(`post content can not be more than ${POST_CHARACTERS_LIMIT} characters`),
+        validatePostContent,
         async (req: Request, res: Response) => {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {

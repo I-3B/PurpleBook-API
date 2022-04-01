@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { body, validationResult } from "express-validator";
+import { validationResult } from "express-validator";
 import mongoose, { ObjectId } from "mongoose";
 import Comment from "../models/Comment";
 import Post from "../models/Post";
@@ -7,6 +7,7 @@ import User from "../models/User";
 import { addLikedByUserFieldAndRemoveLikesField } from "../utils/manipulateModel";
 import notificationHandler from "../utils/notificationHandler";
 import { createProfilePicture, isImage } from "../utils/processImage";
+import { validateFirstAndLastName } from "../utils/validateForm";
 
 const userController = {
     //send user's full profile if the requester is the user
@@ -23,22 +24,7 @@ const userController = {
         return res.sendStatus(404);
     },
     editUser: [
-        body("firstName")
-            .exists()
-            .trim()
-            .isAlpha()
-            .withMessage("First name can only be alphabetic.")
-            .isLength({ min: 1, max: 20 })
-            .withMessage("First name cannot be empty or more than 20 characters.")
-            .escape(),
-        body("lastName")
-            .exists()
-            .trim()
-            .isAlpha()
-            .withMessage("Last name can only be alphabetic.")
-            .isLength({ min: 1, max: 20 })
-            .withMessage("Last name cannot be empty or more than 20 characters.")
-            .escape(),
+        ...validateFirstAndLastName,
         async (req: Request, res: Response) => {
             if (!req.user.userRouteAuthorized) return res.sendStatus(403);
             const errors = validationResult(req);

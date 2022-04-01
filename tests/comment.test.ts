@@ -1,5 +1,5 @@
 import { clearDB, dbConnect, dbDisconnect } from "../src/configs/mongoConfigTesting";
-import { COMMENT_CHARACTERS_LIMIT } from "../src/controllers/commentController";
+import { COMMENT_CHARACTERS_LIMIT } from "../src/utils/validateForm";
 import { login, signup } from "./utils/auth.utils";
 import {
     addComment,

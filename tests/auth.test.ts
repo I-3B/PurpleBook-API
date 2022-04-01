@@ -16,6 +16,12 @@ describe("auth route", () => {
             await signup("User", 201);
             await signup("User", 400);
         });
+        test("should not accept if first or last name are not alphabetic", async () => {
+            await signup("123", 400);
+        });
+        test("should not accept if first or last name are contain spaces", async () => {
+            await signup("a b", 400);
+        });
     });
     describe("login", () => {
         test("login should work", async () => {

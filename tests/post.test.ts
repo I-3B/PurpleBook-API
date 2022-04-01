@@ -1,7 +1,7 @@
 import sharp from "sharp";
 import { clearDB, dbConnect, dbDisconnect } from "../src/configs/mongoConfigTesting";
-import { POST_CHARACTERS_LIMIT } from "../src/controllers/postController";
 import Post from "../src/models/Post";
+import { POST_CHARACTERS_LIMIT } from "../src/utils/validateForm";
 import { login, signup } from "./utils/auth.utils";
 import { addComment, getAllComments } from "./utils/comment.utils";
 import { getNotifications } from "./utils/notification.utils";
