@@ -1,5 +1,5 @@
 import request from "supertest";
-import app from "../app";
+import app from "../../app";
 
 const addComment = (token: String, postId: String, commentLength: number, status: Number) => {
     return request(app)

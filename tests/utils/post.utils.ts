@@ -1,6 +1,6 @@
 import path from "path";
 import request from "supertest";
-import app from "../app";
+import app from "../../app";
 const addPost = (token: String, postLength: number, status: Number) => {
     return request(app)
         .post("/api/posts")
