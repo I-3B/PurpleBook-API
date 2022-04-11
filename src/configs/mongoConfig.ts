@@ -6,7 +6,7 @@ if (process.env.NODE_ENV === "prod") {
     mongoose.connect(process.env.MONGO_DB || "");
     const db = mongoose.connection;
     db.on("error", console.error.bind(console, "mongo connection error"));
-} else if (process.env.NODE_ENV === "dev") {
+} else if (process.env.NODE_ENV === "development") {
     MongoMemoryReplSet.create().then((mongoServer) => {
         const mongoUri = mongoServer.getUri();
         mongoose.connect(mongoUri);
