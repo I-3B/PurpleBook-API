@@ -38,7 +38,7 @@ const commentController = {
         const skipValue = isNaN(skipInt) ? 0 : skipInt;
         const sortByStage: PipelineStage =
             sort === "date" ? { $sort: { createdAt: -1 } } : { $sort: { likesCount: 1 } };
-        const comments = await Comment.aggregate([
+        let comments = await Comment.aggregate([
             {
                 $match: {
                     postId: new mongoose.Types.ObjectId(req.params.postId),
@@ -66,6 +66,10 @@ const commentController = {
                 },
             },
         ]);
+        comments = comments.map((comment) => {
+            comment.author = comment.author[0];
+            return comment;
+        });
         const editedComments = comments.map(
             (comment: { likes: Array<ObjectId>; likedByUser?: boolean }) => {
                 return addLikedByUserFieldAndRemoveLikesField(comment, req.user.id);

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { validationResult } from "express-validator";
-import mongoose, { ObjectId } from "mongoose";
+import mongoose from "mongoose";
 import Post from "../models/Post";
 import User from "../models/User";
 import { addLikedByUserFieldAndRemoveLikesField } from "../utils/manipulateModel";
@@ -20,7 +20,7 @@ const postController = {
         const matchPostAuthorsAsObjectId = matchPostAuthors.map((authorId) => {
             return new mongoose.Types.ObjectId(authorId);
         });
-        const posts = await Post.aggregate([
+        let posts = await Post.aggregate([
             {
                 $match: {
                     authorId: { $in: matchPostAuthorsAsObjectId },
@@ -58,10 +58,14 @@ const postController = {
                 },
             },
         ]);
-        const editedPosts = posts.map((post) => {
+        posts = posts.map((post) => {
+            post.author = post.author[0];
+            return post;
+        });
+        const postWithLikedByUser = posts.map((post) => {
             return addLikedByUserFieldAndRemoveLikesField(post, req.user.id);
         });
-        return res.status(200).json({ posts: editedPosts });
+        return res.status(200).json({ posts: postWithLikedByUser });
     },
 
     addPost: [
@@ -98,7 +102,7 @@ const postController = {
         },
     ],
     getPost: async (req: Request, res: Response) => {
-        const [post]: Array<{ likes: Array<ObjectId> }> = await Post.aggregate([
+        let [post] = await Post.aggregate([
             {
                 $match: {
                     _id: new mongoose.Types.ObjectId(req.params.postId),
@@ -126,10 +130,10 @@ const postController = {
             },
         ]);
         if (!post) return res.sendStatus(404);
-
-        const editedPost = addLikedByUserFieldAndRemoveLikesField(post, req.user.id);
+        post.author = post.author[0];
+        const postWithLikedByUser = addLikedByUserFieldAndRemoveLikesField(post, req.user.id);
         return res.status(200).json({
-            post: editedPost,
+            post: postWithLikedByUser,
         });
     },
     editPost: [
