@@ -24,28 +24,31 @@ const authController = {
                         if (err) return next(err);
                         if (result) {
                             const secret = process.env.SECRET || "SECRET";
-                            const token = jwt.sign({ email: user.email }, secret, {
-                                expiresIn: "1 year",
-                            });
+                            const token = jwt.sign({ email: user.email }, secret);
                             return res.status(200).json({
                                 userId: user._id,
                                 token,
                             });
                         } else {
                             return res.status(400).json({
-                                errors: [
-                                    {
-                                        value: req.body.password,
-                                        msg: "wrong password",
-                                        param: "password",
-                                        location: "body",
-                                    },
-                                ],
+                                error: {
+                                    value: req.body.password,
+                                    msg: "wrong password",
+                                    param: "password",
+                                    location: "body",
+                                },
                             });
                         }
                     });
                 } else {
-                    return res.sendStatus(404);
+                    return res.status(404).json({
+                        error: {
+                            value: req.body.email,
+                            msg: "User not found",
+                            param: "email",
+                            location: "body",
+                        },
+                    });
                 }
             }
         },
