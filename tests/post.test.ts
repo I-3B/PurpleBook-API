@@ -16,6 +16,7 @@ import {
     getPostLikes,
     unlikePost,
 } from "./utils/post.utils";
+import { acceptFriendRequest, addFriendRequest } from "./utils/user.utils";
 
 let token: String;
 let userId: String;
@@ -249,6 +250,17 @@ describe("post route", () => {
             const { posts } = (await getFeed(token, "", 200)).body;
             expect(posts[1]).toMatchObject({ _id: postId, likedByUser: true });
             expect(posts[0]).toMatchObject({ _id: postNotLikedId, likedByUser: false });
+        });
+        test("should be able to view a friend post", async () => {
+            await signup("friend", 201);
+            const friend = (await login("friend", 200)).body;
+            await addFriendRequest(userId, friend.token, 200);
+            await acceptFriendRequest(userId, token, friend.userId, 200);
+            const { postId } = (await addPost(friend.token, 1, 201)).body;
+
+            const { posts } = (await getFeed(token, "", 200)).body;
+
+            expect(posts[0]._id).toBe(postId);
         });
     });
 });
