@@ -12,6 +12,37 @@ import { validateFirstAndLastName } from "../utils/validateForm";
 const userController = {
     //send user's full profile if the requester is the user
     //else it will send the profile without sensitive data
+    getUserHomeData: async (req: Request, res: Response) => {
+        const [user] = await User.aggregate([
+            {
+                $match: {
+                    _id: new mongoose.Types.ObjectId(req.user.id.toString()),
+                },
+            },
+            {
+                $lookup: {
+                    from: "notifications",
+                    localField: "_id",
+                    foreignField: "userId",
+                    as: "notifications",
+                },
+            },
+            {
+                $project: {
+                    firstName: 1,
+                    lastName: 1,
+                    imageMini: 1,
+                    friendRequestsCount: { $size: "$friendRequests" },
+                    notificationsCount: {
+                        $size: {
+                            $cond: [{ $isArray: "$notifications" }, "$notifications", []],
+                        },
+                    },
+                },
+            },
+        ]);
+        return res.status(200).json({ user });
+    },
     getUser: async (req: Request, res: Response) => {
         const user = await User.findById(req.params.userId, {
             firstName: 1,

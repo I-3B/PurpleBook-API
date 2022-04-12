@@ -16,6 +16,7 @@ import {
     getFriends,
     getUser,
     getUserComments,
+    getUserHomeData,
     getUserPosts,
     setFriendRequestsAsViewed,
 } from "./utils/user.utils";
@@ -464,6 +465,43 @@ describe("users route", () => {
             const { userId, token } = (await login("User", 200)).body;
             //not a friend
             await deleteFriend(userId, token, "WRONG_ID", 500);
+        });
+    });
+    describe("getUserHomeData", () => {
+        test("should return user data", async () => {
+            await signup("User", 201);
+            const { token } = (await login("User", 200)).body;
+            const { user } = (await getUserHomeData(token, 200)).body;
+
+            expect(user.firstName).toBe("User");
+            expect(user.lastName).toBe("User");
+            expect(user.imageMini).toBeDefined();
+        });
+
+        test("should return friend requests count", async () => {
+            await signup("User", 201);
+            await signup("Friend", 201);
+            const { userId, token } = (await login("User", 200)).body;
+            const { token: friendToken } = (await login("Friend", 200)).body;
+            await addFriendRequest(userId, friendToken, 200);
+
+            const { user } = (await getUserHomeData(token, 200)).body;
+
+            expect(user.friendRequestsCount).toBe(1);
+        });
+
+        test("should return notification count", async () => {
+            await signup("User", 201);
+            await signup("Friend", 201);
+            const { userId, token } = (await login("User", 200)).body;
+            const { token: friendToken } = (await login("Friend", 200)).body;
+            const { postId } = (await addPost(token, 1, 201)).body;
+            await addLikeToPost(friendToken, postId, 200);
+
+            const { user } = (await getUserHomeData(token, 200)).body;
+
+            console.log(user);
+            expect(user.notificationsCount).toBe(1);
         });
     });
 });

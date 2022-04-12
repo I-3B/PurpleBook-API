@@ -95,6 +95,12 @@ const deleteFriend = (userId: String, token: String, friendId: String, status: N
         .set("Authorization", `Bearer ${token}`)
         .expect(status);
 };
+const getUserHomeData = (token: String, status: Number) => {
+    return request(app)
+        .get(`/api/users/profile`)
+        .set("Authorization", `Bearer ${token}`)
+        .expect(status);
+};
 export {
     getUser,
     editUser,
@@ -109,4 +115,5 @@ export {
     acceptFriendRequest,
     getFriends,
     deleteFriend,
+    getUserHomeData,
 };
