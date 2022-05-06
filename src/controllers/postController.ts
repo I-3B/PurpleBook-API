@@ -77,6 +77,14 @@ const postController = {
             const isFileImage = await isImage(imageBuffer);
 
             const errors = validationResult(req).array();
+            if (files[0] && !isFileImage) {
+                errors.push({
+                    value: files[0].originalname,
+                    msg: "file is not an image",
+                    param: "image",
+                    location: "body",
+                });
+            }
             if (!isFileImage && req.body.content.length == 0) {
                 errors.push({
                     value: "",
@@ -94,7 +102,7 @@ const postController = {
             const post = await Post.create({
                 authorId: req.user.id,
                 content: req.body.content,
-                image: { data: image.full, contentType: imageMimetype },
+                image: { data: image, contentType: imageMimetype },
             });
             return res.status(201).json({
                 postId: post._id,

@@ -58,6 +58,9 @@ describe("post route", () => {
         test("post without content and image should not work", async () => {
             await addPost(token, 0, 400);
         });
+        test("uploading file that is not an image should not work", async () => {
+            await addPostWithImage(token, 1, "images/file.txt", 400);
+        });
     });
 
     describe("editPost", () => {
