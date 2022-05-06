@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { validationResult } from "express-validator";
-import mongoose, { ObjectId, PipelineStage } from "mongoose";
+import mongoose, { PipelineStage } from "mongoose";
 import Comment from "../models/Comment";
 import Post from "../models/Post";
 import { addLikedByUserFieldAndRemoveLikesField } from "../utils/manipulateModel";
@@ -37,12 +37,15 @@ const commentController = {
         const limitValue = isNaN(limitInt) ? 20 : limitInt;
         const skipValue = isNaN(skipInt) ? 0 : skipInt;
         const sortByStage: PipelineStage =
-            sort === "date" ? { $sort: { createdAt: -1 } } : { $sort: { likesCount: 1 } };
+            sort === "date" ? { $sort: { createdAt: -1 } } : { $sort: { likesCount: -1 } };
         let comments = await Comment.aggregate([
             {
                 $match: {
                     postId: new mongoose.Types.ObjectId(req.params.postId),
                 },
+            },
+            {
+                $addFields: { likesCount: { $size: { $ifNull: ["$likes", []] } } },
             },
             sortByStage,
             { $limit: skipValue + limitValue },
@@ -60,21 +63,16 @@ const commentController = {
                     author: { _id: 1, firstName: 1, lastName: 1, imageMini: 1 },
                     content: 1,
                     likes: 1,
-                    likesCount: { $size: "$likes" },
+                    likesCount: 1,
                     createdAt: 1,
                     updatedAt: 1,
                 },
             },
         ]);
-        comments = comments.map((comment) => {
+        const editedComments = comments.map((comment: any) => {
             comment.author = comment.author[0];
-            return comment;
+            return addLikedByUserFieldAndRemoveLikesField(comment, req.user.id);
         });
-        const editedComments = comments.map(
-            (comment: { likes: Array<ObjectId>; likedByUser?: boolean }) => {
-                return addLikedByUserFieldAndRemoveLikesField(comment, req.user.id);
-            }
-        );
         return res.status(200).json({
             comments: editedComments,
         });
