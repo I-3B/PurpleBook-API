@@ -27,7 +27,7 @@ const editUserWithImage = (
         .set("Authorization", `Bearer ${token}`)
         .field("firstName", `${edit}`)
         .field("lastName", `${edit}`)
-        .attach("image.png", path.join(__dirname, image))
+        .attach("image", path.join(__dirname, image))
         .expect(status);
 };
 const deleteUser = (userId: String, token: String, status: Number) => {

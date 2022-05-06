@@ -13,7 +13,7 @@ const addPostWithImage = (token: String, postLength: number, image: string, stat
         .post("/api/posts")
         .set("Authorization", `Bearer ${token}`)
         .field("content", generateCharacters(postLength))
-        .attach("image.png", path.join(__dirname, image))
+        .attach("image", path.join(__dirname, image))
         .expect(status);
 };
 const editPost = (token: String, postId: String, postLength: number, status: Number) => {
