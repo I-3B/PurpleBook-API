@@ -6,6 +6,7 @@ const router = express.Router({ mergeParams: true });
 
 router.post("/", commentController.addComment);
 router.get("/", commentController.getAllComments);
+router.get("/:commentId", commentController.getComment);
 router.patch("/:commentId", commentFindAndAuthorize, commentController.editComment);
 router.delete("/:commentId", commentFindAndAuthorize, commentController.deleteComment);
 

@@ -7,6 +7,7 @@ import {
     deleteComment,
     editComment,
     getAllComments,
+    getComment,
     getCommentLikes,
     unlikeComment,
 } from "./utils/comment.utils";
@@ -120,7 +121,14 @@ describe("comment route", () => {
             expect(anotherUserCommentsView[0].likedByUser).toBe(false);
         });
     });
-
+    describe.only("getComment", () => {
+        test("should return comment", async () => {
+            const { postId } = (await addPost(token, 1, 201)).body;
+            const { commentId } = (await addComment(token, postId, 1, 201)).body;
+            const { comment } = (await getComment(token, postId, commentId, 200)).body;
+            expect(comment).toBeDefined();
+        });
+    });
     describe("editComment", () => {
         test("should be able to edit a comment when authorized", async () => {
             const { postId } = (await addPost(token, 1, 201)).body;

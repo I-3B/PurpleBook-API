@@ -14,6 +14,12 @@ const getAllComments = (token: String, postId: String, status: Number, queryOpti
         .set("Authorization", `Bearer ${token}`)
         .expect(status);
 };
+const getComment = (token: String, postId: String, commentId: String, status: Number) => {
+    return request(app)
+        .get(`/api/posts/${postId}/comments/${commentId}`)
+        .set("Authorization", `Bearer ${token}`)
+        .expect(status);
+};
 const editComment = (
     token: String,
     postId: String,
@@ -60,6 +66,7 @@ const generateCharacters = (length: number) => {
 export {
     addComment,
     getAllComments,
+    getComment,
     editComment,
     deleteComment,
     addLikeToComment,

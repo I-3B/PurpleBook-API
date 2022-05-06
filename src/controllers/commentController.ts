@@ -77,6 +77,38 @@ const commentController = {
             comments: editedComments,
         });
     },
+    getComment: async (req: Request, res: Response) => {
+        let [comment] = await Comment.aggregate([
+            {
+                $match: {
+                    _id: new mongoose.Types.ObjectId(req.params.commentId),
+                },
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "authorId",
+                    foreignField: "_id",
+                    as: "author",
+                },
+            },
+            {
+                $project: {
+                    author: { _id: 1, firstName: 1, lastName: 1, imageMini: 1 },
+                    content: 1,
+                    likes: 1,
+                    likesCount: { $size: "$likes" },
+                    createdAt: 1,
+                    updatedAt: 1,
+                },
+            },
+        ]);
+        comment.author = comment.author[0];
+        comment = addLikedByUserFieldAndRemoveLikesField(comment, req.user.id);
+        return res.status(200).json({
+            comment: comment,
+        });
+    },
     editComment: [
         validateCommentContent,
         async (req: Request, res: Response) => {
