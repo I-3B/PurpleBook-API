@@ -62,7 +62,7 @@ describe("users route", () => {
 
             expect(user.imageMini.data.length).toBe(0);
 
-            await editUserWithImage("edited", userId, token, "/images/profilePicture.png", 200);
+            await editUserWithImage("edited", userId, token, "./images/profile.png", 200);
 
             user = await User.findOne({ firstName: "edited" });
 
@@ -70,7 +70,7 @@ describe("users route", () => {
         });
 
         test("editing user without uploading new image should not remove the old one", async () => {
-            await signupWithImage("User", "/images/profilePicture.png", 201);
+            await signupWithImage("User", "./images/profile.png", 201);
             const { token, userId } = (await login("User", 200)).body;
 
             await editUser("edited", userId, token, 200);
@@ -500,7 +500,6 @@ describe("users route", () => {
 
             const { user } = (await getUserHomeData(token, 200)).body;
 
-            console.log(user);
             expect(user.notificationsCount).toBe(1);
         });
     });

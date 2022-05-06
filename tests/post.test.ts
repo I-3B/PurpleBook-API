@@ -40,7 +40,7 @@ describe("post route", () => {
             await addPost(token, POST_CHARACTERS_LIMIT + 1, 400);
         });
         test("adding post with image should work", async () => {
-            const { postId } = (await addPostWithImage(token, 1, "images/postImage.png", 201)).body;
+            const { postId } = (await addPostWithImage(token, 1, "images/post.jpg", 201)).body;
             const post = await Post.findOne({ _id: postId });
 
             expect(post.image).toBeDefined();
@@ -52,7 +52,7 @@ describe("post route", () => {
         });
 
         test("adding an image without content should work", async () => {
-            await addPostWithImage(token, 0, "images/postImage.png", 201);
+            await addPostWithImage(token, 0, "images/post.jpg", 201);
         });
 
         test("post without content and image should not work", async () => {

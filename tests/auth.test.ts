@@ -10,7 +10,7 @@ describe("auth route", () => {
             await signup("User", 201);
         });
         test("new user signup should work with image", async () => {
-            await signupWithImage("User", "/images/profilePicture.png", 201);
+            await signupWithImage("User", "/images/profile.png", 201);
         });
         test("should reject duplicate email", async () => {
             await signup("User", 201);

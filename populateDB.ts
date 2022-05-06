@@ -1,15 +1,15 @@
-import { login, signup } from "./tests/utils/auth.utils";
+import { login, signup, signupWithImage } from "./tests/utils/auth.utils";
 import { addComment } from "./tests/utils/comment.utils";
-import { addLikeToPost, addPost } from "./tests/utils/post.utils";
+import { addLikeToPost, addPostWithImage } from "./tests/utils/post.utils";
 import { acceptFriendRequest, addFriendRequest } from "./tests/utils/user.utils";
 
 const populateDB = async () => {
-    await signup("Zero", 201);
+    await signupWithImage("Zero", "/images/profile.png", 201);
     await signup("One", 201);
     const zero = (await login("Zero", 200)).body;
     const one = (await login("One", 200)).body;
 
-    const zeroPost = (await addPost(zero.token, 70, 201)).body;
+    const zeroPost = (await addPostWithImage(zero.token, 70, "/images/post.jpg", 201)).body;
     await Promise.all([
         addLikeToPost(zero.token, zeroPost.postId, 200),
         addLikeToPost(one.token, zeroPost.postId, 200),

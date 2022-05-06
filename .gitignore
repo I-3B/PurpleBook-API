@@ -2,7 +2,6 @@ node_modules/
 .env
 dist/
 mongoDev.sh
-image.drawio
-image.png
+tests/utils/images
 coverage/
 .vscode/

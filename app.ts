@@ -5,12 +5,12 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { Application, NextFunction, Request, Response } from "express";
 import createError from "http-errors";
+import logger from "morgan";
 import passport from "passport";
 import populateDB from "./populateDB";
 import indexRouter from "./src/routes/indexRouter";
 import FacebookStrategy from "./src/strategies/FacebookTokenStrategy";
 import jwtStrategy from "./src/strategies/jwtStrategy";
-
 const app: Application = express();
 const port = 8080;
 
@@ -18,6 +18,7 @@ passport.use(jwtStrategy);
 passport.use(FacebookStrategy);
 // Body parsing Middleware
 app.use(cors());
+app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
