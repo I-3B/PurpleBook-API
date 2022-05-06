@@ -54,7 +54,6 @@ const postController = {
                     likesCount: { $size: "$likes" },
                     commentsCount: { $size: "$comments" },
                     createdAt: 1,
-                    updatedAt: 1,
                 },
             },
         ]);
@@ -133,7 +132,6 @@ const postController = {
                     likes: 1,
                     likesCount: { $size: "$likes" },
                     createdAt: 1,
-                    updatedAt: 1,
                 },
             },
         ]);

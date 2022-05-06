@@ -65,7 +65,6 @@ const commentController = {
                     likes: 1,
                     likesCount: 1,
                     createdAt: 1,
-                    updatedAt: 1,
                 },
             },
         ]);
@@ -99,7 +98,6 @@ const commentController = {
                     likes: 1,
                     likesCount: { $size: "$likes" },
                     createdAt: 1,
-                    updatedAt: 1,
                 },
             },
         ]);
