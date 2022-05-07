@@ -151,7 +151,7 @@ const postController = {
                     errors: [...errors.array()],
                 });
             }
-            await Post.updateOne({ _id: req.params.postId });
+            await Post.updateOne({ _id: req.params.postId }, { content: req.body.content });
 
             return res.sendStatus(200);
         },
