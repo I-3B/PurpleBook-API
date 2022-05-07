@@ -29,8 +29,10 @@ const validatePostContent = body("content")
 const COMMENT_CHARACTERS_LIMIT = 2500;
 const validateCommentContent = body("content")
     .trim()
-    .isLength({ max: COMMENT_CHARACTERS_LIMIT })
-    .withMessage(`post content can not be more than ${COMMENT_CHARACTERS_LIMIT} characters`)
+    .isLength({ min: 1, max: COMMENT_CHARACTERS_LIMIT })
+    .withMessage(
+        `comment content can not be empty or more than ${COMMENT_CHARACTERS_LIMIT} characters`
+    )
     .escape();
 export {
     validateFirstAndLastName,
