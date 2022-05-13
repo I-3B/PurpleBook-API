@@ -1,6 +1,8 @@
 require("dotenv").config();
 require("express-async-errors");
-require("./src/configs/mongoConfig");
+if (process.env.NODE_ENV === "development") require("./src/configs/mongoConfigDevelopment");
+else if (process.env.NODE_ENV === "production") require("./src/configs/mongoConfigProduction");
+
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { Application, NextFunction, Request, Response } from "express";
