@@ -12,7 +12,7 @@ const postController = {
         const { limit, skip } = req.query;
         const limitInt = parseInt(limit + "");
         const skipInt = parseInt(skip + "");
-        const limitValue = isNaN(limitInt) ? 20 : limitInt;
+        const limitValue = isNaN(limitInt) ? 10 : limitInt;
         const skipValue = isNaN(skipInt) ? 0 : skipInt;
 
         const { friends } = await User.findOne({ _id: req.user.id }, { friends: 1 });
