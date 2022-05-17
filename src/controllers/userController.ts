@@ -48,6 +48,7 @@ const userController = {
             firstName: 1,
             lastName: 1,
             imageFull: 1,
+            createdAt: 1,
         });
         if (user) {
             return res.status(200).json({ user });
