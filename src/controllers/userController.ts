@@ -177,7 +177,6 @@ const userController = {
                 $project: {
                     post: 1,
                     content: 1,
-                    image: 1,
                     likes: 1,
                     likesCount: { $size: "$likes" },
                     createdAt: 1,
