@@ -114,6 +114,7 @@ const userController = {
         }
     },
     getPosts: async (req: Request, res: Response) => {
+        //TODO skip and limit
         const posts = await Post.aggregate([
             {
                 $match: { authorId: new mongoose.Types.ObjectId(req.params.userId) },
@@ -144,6 +145,7 @@ const userController = {
         return res.status(200).json({ posts: editedPosts });
     },
     getComments: async (req: Request, res: Response) => {
+        //TODO skip and limit
         const comments = await Comment.aggregate([
             {
                 $match: { authorId: new mongoose.Types.ObjectId(req.params.userId) },
@@ -190,7 +192,12 @@ const userController = {
         });
         return res.status(200).json({ comments: comments });
     },
-
+    getFriendState: async () => {
+        //TODO
+    },
+    getFriendRecommendation: async () => {
+        //TODO
+    },
     getFriendRequests: async (req: Request, res: Response) => {
         if (!req.user.userRouteAuthorized) {
             return res.sendStatus(403);
@@ -279,6 +286,12 @@ const userController = {
 
         return res.sendStatus(200);
     },
+    getFriendRequestsSent: async () => {
+        //TODO
+    },
+    deleteSentFriendRequest: async () => {
+        //TODO
+    },
     acceptFriendRequest: async (req: Request, res: Response) => {
         if (!req.user.userRouteAuthorized) {
             return res.sendStatus(403);
@@ -319,6 +332,7 @@ const userController = {
     },
 
     getFriends: async (req: Request, res: Response) => {
+        //TODO skip and limit
         const { friends } = await User.findById(req.params.userId, {
             friends: 1,
         }).populate("friends", { _id: 1, firstName: 1, lastName: 1, imageMini: 1 });
