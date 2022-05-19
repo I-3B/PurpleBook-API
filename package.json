@@ -12,6 +12,7 @@
     "devDependencies": {
         "@faker-js/faker": "^6.0.0-alpha.7",
         "@shelf/jest-mongodb": "^2.2.0",
+        "@types/async": "^3.2.13",
         "@types/bcryptjs": "^2.4.2",
         "@types/cookie-parser": "^1.4.2",
         "@types/cors": "^2.8.12",

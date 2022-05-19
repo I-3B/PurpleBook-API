@@ -1,3 +1,4 @@
+import async from "async";
 import { Request, Response } from "express";
 import { validationResult } from "express-validator";
 import mongoose, { ObjectId } from "mongoose";
@@ -51,6 +52,8 @@ const userController = {
             createdAt: 1,
         });
         if (user) {
+            const friendState = await getFriendState(req.user.id, req.params.userId);
+            user.friendState = friendState;
             return res.status(200).json({ user });
         }
         return res.sendStatus(404);
@@ -192,8 +195,9 @@ const userController = {
         });
         return res.status(200).json({ comments: comments });
     },
-    getFriendState: async () => {
-        //TODO
+    getFriendState: async (req: Request, res: Response) => {
+        const friendState = await getFriendState(req.params.userId, req.params.friendId);
+        res.status(200).json({ friendState });
     },
     getFriendRecommendation: async () => {
         //TODO
@@ -286,9 +290,6 @@ const userController = {
 
         return res.sendStatus(200);
     },
-    getFriendRequestsSent: async () => {
-        //TODO
-    },
     deleteSentFriendRequest: async () => {
         //TODO
     },
@@ -333,11 +334,27 @@ const userController = {
 
     getFriends: async (req: Request, res: Response) => {
         //TODO skip and limit
-        const { friends } = await User.findById(req.params.userId, {
+        interface friendI {
+            _id: string;
+            friendState: string;
+            _doc: friendI;
+        }
+        interface query {
+            friends: Array<friendI>;
+        }
+        const { friends }: query = await User.findById(req.params.userId, {
             friends: 1,
         }).populate("friends", { _id: 1, firstName: 1, lastName: 1, imageMini: 1 });
+
+        const map = async (friend: friendI, done: (arg0: null, arg1: friendI) => void) => {
+            const friendState = await getFriendState(req.user.id, friend._id);
+
+            done(null, { ...friend._doc, friendState });
+        };
+
+        const friendsWithState = await async.map(friends, map);
         return res.status(200).json({
-            friends: friends,
+            friends: friendsWithState,
         });
     },
     deleteFriend: async (req: Request, res: Response) => {
@@ -373,5 +390,20 @@ const userController = {
         return res.sendStatus(200);
     },
 };
-
+async function getFriendState(userId: String, friendId: String) {
+    let friendState: string;
+    const [friend, friendRequestReceived, friendRequestSent] = await Promise.all([
+        User.findOne({ _id: userId, friends: friendId }).count(),
+        User.findOne({ _id: userId, "friendRequests.user": friendId }),
+        User.findOne({
+            _id: friendId,
+            "friendRequests.user": userId,
+        }),
+    ]);
+    if (friend) friendState = "FRIEND";
+    else if (friendRequestReceived) friendState = "FRIEND_REQUEST_RECEIVED";
+    else if (friendRequestSent) friendState = "FRIEND_REQUEST_SENT";
+    else friendState = "NOT_FRIEND";
+    return friendState;
+}
 export default userController;

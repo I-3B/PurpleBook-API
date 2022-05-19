@@ -48,6 +48,12 @@ const getUserComments = (userId: String, token: String, status: Number) => {
         .set("Authorization", `Bearer ${token}`)
         .expect(status);
 };
+const getFriendState = (userId: String, token: String, friendId: String, status: Number) => {
+    return request(app)
+        .get(`/api/users/${userId}/friend_state/${friendId}`)
+        .set("Authorization", `Bearer ${token}`)
+        .expect(status);
+};
 const addFriendRequest = (userId: String, token: String, status: Number) => {
     return request(app)
         .post(`/api/users/${userId}/friend_requests`)
@@ -108,6 +114,7 @@ export {
     deleteUser,
     getUserPosts,
     getUserComments,
+    getFriendState,
     addFriendRequest,
     getFriendRequests,
     setFriendRequestsAsViewed,

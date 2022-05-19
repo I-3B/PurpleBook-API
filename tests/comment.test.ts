@@ -121,7 +121,7 @@ describe("comment route", () => {
             expect(anotherUserCommentsView[0].likedByUser).toBe(false);
         });
     });
-    describe.only("getComment", () => {
+    describe("getComment", () => {
         test("should return comment", async () => {
             const { postId } = (await addPost(token, 1, 201)).body;
             const { commentId } = (await addComment(token, postId, 1, 201)).body;

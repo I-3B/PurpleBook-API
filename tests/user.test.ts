@@ -14,6 +14,7 @@ import {
     editUserWithImage,
     getFriendRequests,
     getFriends,
+    getFriendState,
     getUser,
     getUserComments,
     getUserHomeData,
@@ -31,7 +32,6 @@ describe("users route", () => {
             const { token } = (await login("UserTwo", 200)).body;
 
             const { user } = (await getUser(userId, token, 200)).body;
-
             expect(user.firstName).toBe("UserOne");
         });
     });
@@ -258,6 +258,50 @@ describe("users route", () => {
             expect(comments[0].post.postAuthorFirstName).toBe("User");
         });
     });
+
+    describe("getFriendState", () => {
+        let user: { token: string; userId: string };
+        let friend: { token: string; userId: string };
+        beforeEach(async () => {
+            await signup("user", 201);
+            await signup("friend", 201);
+            user = (await login("user", 200)).body;
+            friend = (await login("friend", 200)).body;
+        });
+
+        test("should return NOT_FRIEND", async () => {
+            const { friendState } = (
+                await getFriendState(user.userId, user.token, friend.userId, 200)
+            ).body;
+            expect(friendState).toBe("NOT_FRIEND");
+        });
+
+        test("should return FRIEND_REQUEST_SENT", async () => {
+            await addFriendRequest(friend.userId, user.token, 200);
+            const { friendState } = (
+                await getFriendState(user.userId, user.token, friend.userId, 200)
+            ).body;
+            expect(friendState).toBe("FRIEND_REQUEST_SENT");
+        });
+
+        test("should return FRIEND_REQUEST_RECEIVED", async () => {
+            await addFriendRequest(user.userId, friend.token, 200);
+            const { friendState } = (
+                await getFriendState(user.userId, user.token, friend.userId, 200)
+            ).body;
+            expect(friendState).toBe("FRIEND_REQUEST_RECEIVED");
+        });
+
+        test("should return FRIEND", async () => {
+            await addFriendRequest(friend.userId, user.token, 200);
+            await acceptFriendRequest(user.userId, user.token, friend.userId, 200);
+            const { friendState } = (
+                await getFriendState(user.userId, user.token, friend.userId, 200)
+            ).body;
+            expect(friendState).toBe("FRIEND");
+        });
+    });
+
     describe("getFriendRequests", () => {
         test("user should be able to view their friend requests", async () => {
             await signup("UserOwnFR", 201);
@@ -442,7 +486,31 @@ describe("users route", () => {
             );
         });
     });
+    describe("getFriends", () => {
+        test("friends array should have friendState for viewer", async () => {
+            await signup("Viewer", 201);
+            await signup("User", 201);
+            await signup("Friend", 201);
+            const viewer = (await login("Viewer", 200)).body;
+            const user = (await login("User", 200)).body;
+            const friend = (await login("Friend", 200)).body;
 
+            await addFriendRequest(friend.userId, user.token, 200);
+            await acceptFriendRequest(friend.userId, friend.token, user.userId, 200);
+
+            const { friends: friendsBefore } = (await getFriends(user.userId, viewer.token, 200))
+                .body;
+            expect(friendsBefore[0].friendState).toBe("NOT_FRIEND");
+
+            await (
+                await addFriendRequest(friend.userId, viewer.token, 200)
+            ).body;
+            const { friends: friendsAfter } = (await getFriends(user.userId, viewer.token, 200))
+                .body;
+
+            expect(friendsAfter[0].friendState).toBe("FRIEND_REQUEST_SENT");
+        });
+    });
     describe("deleteFriend", () => {
         test("should be able to unfriend another user", async () => {
             await signup("User", 201);
