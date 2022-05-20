@@ -53,8 +53,7 @@ const userController = {
         });
         if (user) {
             const friendState = await getFriendState(req.user.id, req.params.userId);
-            user.friendState = friendState;
-            return res.status(200).json({ user });
+            return res.status(200).json({ user: { ...user._doc, friendState } });
         }
         return res.sendStatus(404);
     },
@@ -290,8 +289,22 @@ const userController = {
 
         return res.sendStatus(200);
     },
-    deleteSentFriendRequest: async () => {
-        //TODO
+    deleteSentFriendRequest: async (req: Request, res: Response) => {
+        if (!req.user.userRouteAuthorized) {
+            return res.sendStatus(403);
+        }
+        const result = await User.updateOne(
+            {
+                _id: req.params.friendId,
+            },
+            {
+                $pull: {
+                    friendRequests: { user: req.params.userId },
+                },
+            }
+        );
+        if (result.modifiedCount === 0) return res.sendStatus(404);
+        return res.sendStatus(200);
     },
     acceptFriendRequest: async (req: Request, res: Response) => {
         if (!req.user.userRouteAuthorized) {
