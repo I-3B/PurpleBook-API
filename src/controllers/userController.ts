@@ -7,6 +7,7 @@ import Post from "../models/Post";
 import User from "../models/User";
 import { addLikedByUserFieldAndRemoveLikesField } from "../utils/manipulateModel";
 import notificationHandler from "../utils/notificationHandler";
+import parseQuery from "../utils/parseQuery";
 import { createProfilePicture, isImage } from "../utils/processImage";
 import { validateFirstAndLastName } from "../utils/validateForm";
 
@@ -127,11 +128,15 @@ const userController = {
         }
     },
     getPosts: async (req: Request, res: Response) => {
-        //TODO skip and limit
+        const { limit, skip } = req.query;
+        const { limitValue, skipValue } = parseQuery(limit as string, 10, skip as string);
         const posts = await Post.aggregate([
             {
                 $match: { authorId: new mongoose.Types.ObjectId(req.params.userId) },
             },
+            { $sort: { createdAt: -1 } },
+            { $limit: skipValue + limitValue },
+            { $skip: skipValue },
             {
                 $lookup: {
                     from: "comments",
@@ -158,11 +163,15 @@ const userController = {
         return res.status(200).json({ posts: editedPosts });
     },
     getComments: async (req: Request, res: Response) => {
-        //TODO skip and limit
+        const { limit, skip } = req.query;
+        const { limitValue, skipValue } = parseQuery(limit as string, 10, skip as string);
         const comments = await Comment.aggregate([
             {
                 $match: { authorId: new mongoose.Types.ObjectId(req.params.userId) },
             },
+            { $sort: { createdAt: -1 } },
+            { $limit: skipValue + limitValue },
+            { $skip: skipValue },
             {
                 $lookup: {
                     from: "posts",
@@ -357,7 +366,6 @@ const userController = {
     },
 
     getFriends: async (req: Request, res: Response) => {
-        //TODO skip and limit
         interface friendI {
             _id: string;
             friendState: string;
@@ -369,7 +377,6 @@ const userController = {
         const { friends }: query = await User.findById(req.params.userId, {
             friends: 1,
         }).populate("friends", { _id: 1, firstName: 1, lastName: 1, imageMini: 1 });
-
         const map = async (friend: friendI, done: (arg0: null, arg1: friendI) => void) => {
             const friendState = await getFriendState(req.user.id, friend._id);
 

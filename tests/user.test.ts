@@ -243,6 +243,19 @@ describe("users route", () => {
             expect(posts[0].likedByUser).toBe(true);
             expect(anotherUserPostView[0].likedByUser).toBe(false);
         });
+
+        test("limit and skip should work", async () => {
+            await signup("User", 201);
+            const { userId, token } = (await login("User", 200)).body;
+            for (let i = 1; i <= 20; i++) {
+                await addPost(token, i, 201);
+            }
+            const { posts } = (await getUserPosts(userId, token, 200, "limit=5&skip=5")).body;
+            //limit = 5
+            expect(posts.length).toBe(5);
+            //skip = 5: 20 19 18 17 16 should show 15 after five skips
+            expect(posts[0].content.length).toBe(15);
+        });
     });
     describe("getComments", () => {
         test("should retrieve users comments", async () => {

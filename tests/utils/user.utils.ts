@@ -36,9 +36,9 @@ const deleteUser = (userId: String, token: String, status: Number) => {
         .set("Authorization", `Bearer ${token}`)
         .expect(status);
 };
-const getUserPosts = (userId: String, token: String, status: Number) => {
+const getUserPosts = (userId: String, token: String, status: Number, query?: string) => {
     return request(app)
-        .get(`/api/users/${userId}/posts`)
+        .get(`/api/users/${userId}/posts?${query}`)
         .set("Authorization", `Bearer ${token}`)
         .expect(status);
 };
