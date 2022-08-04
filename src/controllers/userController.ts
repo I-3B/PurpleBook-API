@@ -57,6 +57,17 @@ const userController = {
         }
         return res.sendStatus(404);
     },
+    getUserBeforeEdit: async (req: Request, res: Response) => {
+        const user = await User.findById(req.params.userId, {
+            firstName: 1,
+            lastName: 1,
+            imageFull: 1,
+        });
+        if (!user) {
+            return res.sendStatus(404);
+        }
+        return res.status(200).json({ user });
+    },
     editUser: [
         ...validateFirstAndLastName,
         async (req: Request, res: Response) => {

@@ -5,6 +5,7 @@ const router = express.Router({ mergeParams: true });
 const upload = multer();
 
 router.get("/", userController.getUser);
+router.get("/edit_data", userController.getUserBeforeEdit);
 router.patch("/", upload.any(), userController.editUser);
 router.delete("/", userController.deleteUser);
 
