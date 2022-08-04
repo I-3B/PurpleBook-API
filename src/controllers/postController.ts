@@ -5,15 +5,17 @@ import Post from "../models/Post";
 import User from "../models/User";
 import { addLikedByUserFieldAndRemoveLikesField } from "../utils/manipulateModel";
 import notificationHandler from "../utils/notificationHandler";
+import parseQuery from "../utils/parseQuery";
 import { createPostImage, isImage } from "../utils/processImage";
 import { validatePostContent } from "../utils/validateForm";
 const postController = {
     getFeed: async (req: Request, res: Response) => {
         const { limit, skip } = req.query;
-        const limitInt = parseInt(limit + "");
-        const skipInt = parseInt(skip + "");
-        const limitValue = isNaN(limitInt) ? 10 : limitInt;
-        const skipValue = isNaN(skipInt) ? 0 : skipInt;
+        const { limitValue, skipValue, sortByStage } = parseQuery(
+            limit as string,
+            20,
+            skip as string
+        );
 
         const { friends } = await User.findOne({ _id: req.user.id }, { friends: 1 });
         const matchPostAuthors = [req.user.id, ...friends];

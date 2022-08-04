@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
 import { validationResult } from "express-validator";
-import mongoose, { PipelineStage } from "mongoose";
+import mongoose from "mongoose";
 import Comment from "../models/Comment";
 import Post from "../models/Post";
 import { addLikedByUserFieldAndRemoveLikesField } from "../utils/manipulateModel";
 import notificationHandler from "../utils/notificationHandler";
+import parseQuery from "../utils/parseQuery";
 import { validateCommentContent } from "../utils/validateForm";
 const commentController = {
     addComment: [
@@ -32,14 +33,12 @@ const commentController = {
     ],
     getAllComments: async (req: Request, res: Response) => {
         const { limit, skip, sort } = req.query;
-        const limitInt = parseInt(limit + "");
-        const skipInt = parseInt(skip + "");
-        const limitValue = isNaN(limitInt) ? 20 : limitInt;
-        const skipValue = isNaN(skipInt) ? 0 : skipInt;
-        const sortByStage: PipelineStage =
-            sort === "date"
-                ? { $sort: { createdAt: -1 } }
-                : { $sort: { likesCount: -1, createdAt: -1 } };
+        const { limitValue, skipValue, sortByStage } = parseQuery(
+            limit as string,
+            20,
+            skip as string,
+            sort as string
+        );
         let comments = await Comment.aggregate([
             {
                 $match: {
