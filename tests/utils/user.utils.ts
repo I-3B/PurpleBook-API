@@ -107,6 +107,12 @@ const getUserHomeData = (token: String, status: Number) => {
         .set("Authorization", `Bearer ${token}`)
         .expect(status);
 };
+const getFriendRecommendation = (userId: string, token: String, status: Number, query?: String) => {
+    return request(app)
+        .get(`/api/users/${userId}/friend_recommendation/?${query}`)
+        .set("Authorization", `Bearer ${token}`)
+        .expect(status);
+};
 export {
     getUser,
     editUser,
@@ -123,4 +129,5 @@ export {
     getFriends,
     deleteFriend,
     getUserHomeData,
+    getFriendRecommendation,
 };

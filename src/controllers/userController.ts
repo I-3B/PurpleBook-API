@@ -218,8 +218,57 @@ const userController = {
         const friendState = await getFriendState(req.params.userId, req.params.friendId);
         res.status(200).json({ friendState });
     },
-    getFriendRecommendation: async () => {
-        //TODO
+    getFriendRecommendation: async (req: Request, res: Response) => {
+        if (!req.user.userRouteAuthorized) return res.sendStatus(403);
+        const { limit, skip } = req.query;
+        const { limitValue, skipValue } = parseQuery(limit as string, 10, skip as string);
+        const friendRecommendation = await User.aggregate([
+            { $match: { _id: new mongoose.Types.ObjectId(req.params.userId) } },
+            { $project: { friend: "$friends", _id: 0 } },
+            { $unwind: "$friend" },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "friend",
+                    foreignField: "friends",
+                    as: "friendFriend",
+                    pipeline: [
+                        {
+                            $match: {
+                                _id: {
+                                    $ne: new mongoose.Types.ObjectId(req.params.userId),
+                                },
+                            },
+                        },
+                        { $project: { _id: 1 } },
+                    ],
+                },
+            },
+            { $set: { friendFriend: "$friendFriend._id" } },
+            { $unwind: "$friendFriend" },
+            {
+                $group: {
+                    _id: "$_id",
+                    friend: { $addToSet: "$friend" },
+                    friendFriend: { $push: "$friendFriend" },
+                },
+            },
+            { $unwind: "$friendFriend" },
+            {
+                $match: {
+                    $expr: {
+                        $not: { $in: ["$friendFriend", "$friend"] },
+                    },
+                },
+            },
+            { $group: { _id: "$friendFriend", mutualFriends: { $sum: 1 } } },
+            { $match: { _id: { $ne: null } } },
+            { $sort: { mutualFriends: -1 } },
+            { $project: { mutualFriends: 1 } },
+            { $limit: skipValue + limitValue },
+            { $skip: skipValue },
+        ]);
+        return res.status(200).json({ friendRecommendation });
     },
     getFriendRequests: async (req: Request, res: Response) => {
         if (!req.user.userRouteAuthorized) {
