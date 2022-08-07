@@ -34,7 +34,15 @@ const userController = {
                     firstName: 1,
                     lastName: 1,
                     imageMini: 1,
-                    friendRequestsCount: { $size: "$friendRequests" },
+                    friendRequestsCount: {
+                        $size: {
+                            $filter: {
+                                input: "$friendRequests",
+                                as: "friendRequests",
+                                cond: { $eq: ["$$friendRequests.viewed", false] },
+                            },
+                        },
+                    },
                     notificationsCount: {
                         $size: {
                             $cond: [{ $isArray: "$notifications" }, "$notifications", []],
