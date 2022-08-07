@@ -264,11 +264,40 @@ const userController = {
             { $group: { _id: "$friendFriend", mutualFriends: { $sum: 1 } } },
             { $match: { _id: { $ne: null } } },
             { $sort: { mutualFriends: -1 } },
-            { $project: { mutualFriends: 1 } },
             { $limit: skipValue + limitValue },
             { $skip: skipValue },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "data",
+                },
+            },
+            { $unwind: "$data" },
+            {
+                $addFields: {
+                    "data.mutualFriends": "$mutualFriends",
+                },
+            },
+            {
+                $replaceRoot: {
+                    newRoot: "$data",
+                },
+            },
+            { $project: { mutualFriends: 1, firstName: 1, lastName: 1, imageMini: 1 } },
         ]);
-        return res.status(200).json({ friendRecommendation });
+        const map = async (
+            recommend: { _id: string },
+            done: (arg0: null, arg1: { _id: string; friendState: string }) => void
+        ) => {
+            const friendState = await getFriendState(req.user.id, recommend._id);
+            done(null, { ...recommend, friendState });
+        };
+
+        const recommendationWithState = await async.map(friendRecommendation, map);
+
+        return res.status(200).json({ friendRecommendation: recommendationWithState });
     },
     getFriendRequests: async (req: Request, res: Response) => {
         if (!req.user.userRouteAuthorized) {
