@@ -342,6 +342,22 @@ describe("users route", () => {
 
             await getFriendRequests(friendRequestUserId, wantToViewToken, 403);
         });
+
+        test("should show not viewed friend requests first", async () => {
+            await signup("User", 201);
+            await signup("FriendOne", 201);
+            await signup("FriendTwo", 201);
+            const { userId: uId, token: uToken } = (await login("User", 200)).body;
+            const { token: f1Token } = (await login("FriendOne", 200)).body;
+            const { token: f2Token } = (await login("FriendTwo", 200)).body;
+
+            await addFriendRequest(uId, f1Token, 200);
+            await setFriendRequestsAsViewed(uId, uToken, 200);
+            await addFriendRequest(uId, f2Token, 200);
+
+            const { friendRequests } = (await getFriendRequests(uId, uToken, 200)).body;
+            expect(friendRequests[0].viewed).toBe(false);
+        });
     });
 
     describe("addFriendRequest", () => {
@@ -620,6 +636,7 @@ describe("users route", () => {
             await acceptFriendRequest(r3Id, r3Token, f2Id, 200);
 
             const { friendRecommendation } = (await getFriendRecommendation(uId, uToken, 200)).body;
+            console.log(friendRecommendation);
             expect(friendRecommendation).toContainEqual(
                 expect.objectContaining({
                     _id: r1Id,

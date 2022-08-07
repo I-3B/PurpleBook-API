@@ -350,8 +350,8 @@ const userController = {
                 {
                     $push: {
                         friendRequests: {
-                            user: req.user?.id,
-                            viewed: false,
+                            $each: [{ user: req.user?.id, viewed: false }],
+                            $sort: { viewed: 1 },
                         },
                     },
                 }
