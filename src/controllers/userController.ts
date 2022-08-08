@@ -271,7 +271,7 @@ const userController = {
             },
             { $group: { _id: "$friendFriend", mutualFriends: { $sum: 1 } } },
             { $match: { _id: { $ne: null } } },
-            { $sort: { mutualFriends: -1 } },
+            { $sort: { mutualFriends: -1, _id: 1 } },
             { $limit: skipValue + limitValue },
             { $skip: skipValue },
             {
