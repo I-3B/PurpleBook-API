@@ -3,6 +3,10 @@ const Schema = mongoose.Schema;
 const Notification = new Schema(
     {
         userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+        image: {
+            data: Buffer,
+            contentType: String,
+        },
         links: [{ type: { linkId: Schema.Types.ObjectId, ref: String }, required: true }],
         content: { type: String, required: true },
         viewed: { type: Boolean, default: false },

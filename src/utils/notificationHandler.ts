@@ -8,6 +8,7 @@ const notificationHandler = {
             User.findById(likeSenderId, {
                 firstName: 1,
                 lastName: 1,
+                imageMini: 1,
             }),
             Post.findById(postId, { authorId: 1 }),
         ]);
@@ -17,6 +18,7 @@ const notificationHandler = {
         if (likeSenderId !== likedPost.authorId.toString())
             Notification.create({
                 userId: likedPost.authorId,
+                image: likeSender.imageMini,
                 links: [
                     { linkId: postId, ref: "Post" },
                     { linkId: likeSenderId, ref: "User" },
@@ -29,6 +31,7 @@ const notificationHandler = {
             User.findById(likeSenderId, {
                 firstName: 1,
                 lastName: 1,
+                imageMini: 1,
             }),
             Comment.findById(commentId, { authorId: 1 }),
             Post.findById(postId, { authorId: 1 }).populate("authorId", {
@@ -42,6 +45,7 @@ const notificationHandler = {
         if (likeSenderId !== likedComment.authorId.toString())
             Notification.create({
                 userId: likedComment.authorId,
+                image: likeSender.imageMini,
                 links: [
                     { linkId: commentId, ref: "Comment" },
                     { linkId: postId, ref: "Post" },
@@ -52,7 +56,7 @@ const notificationHandler = {
     },
     postCommentedOn: async (commenterId: String, postId: string, commentId: string) => {
         const [commenter, postCommentedOn] = await Promise.all([
-            User.findById(commenterId, { firstName: 1, lastName: 1 }),
+            User.findById(commenterId, { firstName: 1, lastName: 1, imageMini: 1 }),
             Post.findById(postId, { authorId: 1 }),
         ]);
 
@@ -62,6 +66,8 @@ const notificationHandler = {
         if (commenterId !== postCommentedOn.authorId.toString())
             Notification.create({
                 userId: postCommentedOn.authorId,
+                image: commenter.imageMini,
+
                 links: [
                     { linkId: commentId, ref: "Comment" },
                     { linkId: postId, ref: "Post" },
@@ -77,10 +83,12 @@ const notificationHandler = {
         const frr = await User.findById(friendRequestReceiverId, {
             firstName: 1,
             lastName: 1,
+            imageMini: 1,
         });
         const frrName = `${frr.firstName} ${frr.lastName}`;
 
         Notification.create({
+            image: frr.imageMini,
             userId: friendRequestSenderId,
             links: [{ linkId: friendRequestReceiverId, ref: "User" }],
             content: `${frrName} accepted your friend request`,
