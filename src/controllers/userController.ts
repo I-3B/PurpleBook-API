@@ -45,7 +45,11 @@ const userController = {
                     },
                     notificationsCount: {
                         $size: {
-                            $cond: [{ $isArray: "$notifications" }, "$notifications", []],
+                            $filter: {
+                                input: "$notifications",
+                                as: "notifications",
+                                cond: { $eq: ["$$notifications.viewed", false] },
+                            },
                         },
                     },
                 },
