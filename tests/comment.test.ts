@@ -202,9 +202,9 @@ describe("comment route", () => {
             await addLikeToComment(token, postId, commentId, 200);
             await addLikeToComment(token, postId, commentId, 400);
 
-            const { likes } = (await getCommentLikes(token, postId, commentId, 200)).body;
+            const { users } = (await getCommentLikes(token, postId, commentId, 200)).body;
 
-            expect(likes.length).toBe(1);
+            expect(users.length).toBe(1);
         });
 
         test("adding a like to non existent post should not work", async () => {
@@ -254,11 +254,11 @@ describe("comment route", () => {
             await addLikeToComment(userOne.token, postId, commentId, 200);
             await addLikeToComment(token, postId, commentId, 200);
 
-            const { likes } = (await getCommentLikes(token, postId, commentId, 200)).body;
+            const { users } = (await getCommentLikes(token, postId, commentId, 200)).body;
 
-            expect(likes.length).toBe(2);
-            expect(likes).toContainEqual(expect.objectContaining({ firstName: "User" }));
-            expect(likes).toContainEqual(expect.objectContaining({ firstName: "UserOne" }));
+            expect(users.length).toBe(2);
+            expect(users).toContainEqual(expect.objectContaining({ firstName: "User" }));
+            expect(users).toContainEqual(expect.objectContaining({ firstName: "UserOne" }));
         });
 
         test("should not return an array if post is not found", async () => {
@@ -279,11 +279,11 @@ describe("comment route", () => {
             await addLikeToComment(token, postId, commentId, 200);
 
             await unlikeComment(userOne.token, postId, commentId, 200);
-            const { likes } = (await getCommentLikes(token, postId, commentId, 200)).body;
+            const { users } = (await getCommentLikes(token, postId, commentId, 200)).body;
 
-            expect(likes).toContainEqual(expect.objectContaining({ firstName: "User" }));
-            expect(likes).not.toContainEqual(expect.objectContaining({ firstName: "UserOne" }));
-            expect(likes.length).toBe(1);
+            expect(users).toContainEqual(expect.objectContaining({ firstName: "User" }));
+            expect(users).not.toContainEqual(expect.objectContaining({ firstName: "UserOne" }));
+            expect(users.length).toBe(1);
         });
     });
 });

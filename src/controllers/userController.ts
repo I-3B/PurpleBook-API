@@ -511,7 +511,7 @@ const userController = {
         return res.sendStatus(200);
     },
 };
-async function getFriendState(userId: String, friendId: String) {
+export async function getFriendState(userId: String, friendId: String) {
     let friendState: string;
     const [friend, friendRequestReceived, friendRequestSent] = await Promise.all([
         User.findOne({ _id: userId, friends: friendId }).count(),

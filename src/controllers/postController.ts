@@ -8,6 +8,7 @@ import notificationHandler from "../utils/notificationHandler";
 import parseQuery from "../utils/parseQuery";
 import { createPostImage, isImage } from "../utils/processImage";
 import { validatePostContent } from "../utils/validateForm";
+import { getFriendState } from "./userController";
 const postController = {
     getFeed: async (req: Request, res: Response) => {
         const { limit, skip } = req.query;
@@ -193,7 +194,12 @@ const postController = {
             .skip(skipValue)
             .limit(limitValue);
         if (!post) return res.sendStatus(404);
-        return res.status(200).json({ likes: post.likes });
+
+        const users = post.likes.map((user: { _id: string; _doc: any }) => {
+            const friendState = getFriendState(req.user.id, user._id);
+            return { ...user._doc, friendState };
+        });
+        return res.status(200).json({ users });
     },
     unlike: async (req: Request, res: Response) => {
         const result = await Post.updateOne(

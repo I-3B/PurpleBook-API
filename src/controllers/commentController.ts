@@ -7,6 +7,7 @@ import { addLikedByUserFieldAndRemoveLikesField } from "../utils/manipulateModel
 import notificationHandler from "../utils/notificationHandler";
 import parseQuery from "../utils/parseQuery";
 import { validateCommentContent } from "../utils/validateForm";
+import { getFriendState } from "./userController";
 const commentController = {
     addComment: [
         validateCommentContent,
@@ -162,7 +163,11 @@ const commentController = {
             .skip(skipValue)
             .limit(limitValue);
         if (!comment) return res.sendStatus(404);
-        return res.status(200).json({ likes: comment.likes });
+        const users = comment.likes.map((user: { _id: string; _doc: any }) => {
+            const friendState = getFriendState(req.user.id, user._id);
+            return { ...user._doc, friendState };
+        });
+        return res.status(200).json({ users });
     },
     unlike: async (req: Request, res: Response) => {
         const result = await Comment.updateOne(
