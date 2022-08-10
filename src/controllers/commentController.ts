@@ -151,14 +151,16 @@ const commentController = {
         return res.sendStatus(200);
     },
     getLikes: async (req: Request, res: Response) => {
-        const comment = await Comment.findById(req.params.commentId, { likes: 1 }).populate(
-            "likes",
-            {
+        const { skip, limit } = req.query;
+        const { skipValue, limitValue } = parseQuery(limit as string, 15, skip as string);
+        const comment = await Comment.findById(req.params.commentId, { likes: 1 })
+            .populate("likes", {
                 firstName: 1,
                 lastName: 1,
                 imageMini: 1,
-            }
-        );
+            })
+            .skip(skipValue)
+            .limit(limitValue);
         if (!comment) return res.sendStatus(404);
         return res.status(200).json({ likes: comment.likes });
     },

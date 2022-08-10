@@ -182,11 +182,16 @@ const postController = {
         return res.sendStatus(200);
     },
     getLikes: async (req: Request, res: Response) => {
-        const post = await Post.findById(req.params.postId, { likes: 1 }).populate("likes", {
-            firstName: 1,
-            lastName: 1,
-            imageMini: 1,
-        });
+        const { skip, limit } = req.query;
+        const { skipValue, limitValue } = parseQuery(limit as string, 15, skip as string);
+        const post = await Post.findById(req.params.postId, { likes: 1 })
+            .populate("likes", {
+                firstName: 1,
+                lastName: 1,
+                imageMini: 1,
+            })
+            .skip(skipValue)
+            .limit(limitValue);
         if (!post) return res.sendStatus(404);
         return res.status(200).json({ likes: post.likes });
     },
