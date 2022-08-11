@@ -78,8 +78,12 @@ const commentController = {
                 },
             },
         ]);
+        const editedComments = comments.map((comment: any) => {
+            comment.author = comment.author[0];
+            return comment;
+        });
         return res.status(200).json({
-            comments,
+            comments: editedComments,
         });
     },
     getComment: async (req: Request, res: Response) => {
