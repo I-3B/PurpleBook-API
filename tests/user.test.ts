@@ -636,7 +636,6 @@ describe("users route", () => {
             await acceptFriendRequest(r3Id, r3Token, f2Id, 200);
 
             const { friendRecommendation } = (await getFriendRecommendation(uId, uToken, 200)).body;
-            console.log(friendRecommendation);
             expect(friendRecommendation).toContainEqual(
                 expect.objectContaining({
                     _id: r1Id,

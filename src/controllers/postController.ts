@@ -1,9 +1,9 @@
+import async from "async";
 import { Request, Response } from "express";
 import { validationResult } from "express-validator";
 import mongoose from "mongoose";
 import Post from "../models/Post";
 import User from "../models/User";
-import { addLikedByUserFieldAndRemoveLikesField } from "../utils/manipulateModel";
 import notificationHandler from "../utils/notificationHandler";
 import parseQuery from "../utils/parseQuery";
 import { createPostImage, isImage } from "../utils/processImage";
@@ -49,11 +49,19 @@ const postController = {
                 },
             },
             {
+                $addFields: {
+                    likedByUser: {
+                        $in: [new mongoose.Types.ObjectId(req.user.id.toString()), "$likes"],
+                    },
+                },
+            },
+            {
                 $project: {
                     author: { _id: 1, firstName: 1, lastName: 1, imageMini: 1 },
                     content: 1,
                     image: 1,
-                    likes: 1,
+                    likedByUser: 1,
+
                     likesCount: { $size: "$likes" },
                     commentsCount: { $size: "$comments" },
                     createdAt: 1,
@@ -64,10 +72,7 @@ const postController = {
             post.author = post.author[0];
             return post;
         });
-        const postWithLikedByUser = posts.map((post) => {
-            return addLikedByUserFieldAndRemoveLikesField(post, req.user.id);
-        });
-        return res.status(200).json({ posts: postWithLikedByUser });
+        return res.status(200).json({ posts });
     },
 
     addPost: [
@@ -126,13 +131,19 @@ const postController = {
                     as: "author",
                 },
             },
-
+            {
+                $addFields: {
+                    likedByUser: {
+                        $in: [new mongoose.Types.ObjectId(req.user.id.toString()), "$likes"],
+                    },
+                },
+            },
             {
                 $project: {
                     author: { _id: 1, firstName: 1, lastName: 1, imageMini: 1 },
                     content: 1,
                     image: 1,
-                    likes: 1,
+                    likedByUser: 1,
                     likesCount: { $size: "$likes" },
                     createdAt: 1,
                 },
@@ -140,9 +151,8 @@ const postController = {
         ]);
         if (!post) return res.sendStatus(404);
         post.author = post.author[0];
-        const postWithLikedByUser = addLikedByUserFieldAndRemoveLikesField(post, req.user.id);
         return res.status(200).json({
-            post: postWithLikedByUser,
+            post,
         });
     },
     editPost: [
@@ -194,12 +204,17 @@ const postController = {
             .skip(skipValue)
             .limit(limitValue);
         if (!post) return res.sendStatus(404);
+        const users = post.likes;
+        const map = async (
+            user: { _id: string; _doc: any },
+            done: (arg0: null, arg1: { _id: string; friendState: string }) => void
+        ) => {
+            const friendState = await getFriendState(req.user.id, user._id);
+            done(null, { ...user._doc, friendState });
+        };
 
-        const users = post.likes.map((user: { _id: string; _doc: any }) => {
-            const friendState = getFriendState(req.user.id, user._id);
-            return { ...user._doc, friendState };
-        });
-        return res.status(200).json({ users });
+        const usersWithState = await async.map(users, map);
+        return res.status(200).json({ users: usersWithState });
     },
     unlike: async (req: Request, res: Response) => {
         const result = await Post.updateOne(

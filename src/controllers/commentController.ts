@@ -1,9 +1,9 @@
+import async from "async";
 import { Request, Response } from "express";
 import { validationResult } from "express-validator";
 import mongoose from "mongoose";
 import Comment from "../models/Comment";
 import Post from "../models/Post";
-import { addLikedByUserFieldAndRemoveLikesField } from "../utils/manipulateModel";
 import notificationHandler from "../utils/notificationHandler";
 import parseQuery from "../utils/parseQuery";
 import { validateCommentContent } from "../utils/validateForm";
@@ -61,21 +61,25 @@ const commentController = {
                 },
             },
             {
+                $addFields: {
+                    likedByUser: {
+                        $in: [new mongoose.Types.ObjectId(req.user.id.toString()), "$likes"],
+                    },
+                },
+            },
+
+            {
                 $project: {
                     author: { _id: 1, firstName: 1, lastName: 1, imageMini: 1 },
                     content: 1,
-                    likes: 1,
+                    likedByUser: 1,
                     likesCount: 1,
                     createdAt: 1,
                 },
             },
         ]);
-        const editedComments = comments.map((comment: any) => {
-            comment.author = comment.author[0];
-            return addLikedByUserFieldAndRemoveLikesField(comment, req.user.id);
-        });
         return res.status(200).json({
-            comments: editedComments,
+            comments,
         });
     },
     getComment: async (req: Request, res: Response) => {
@@ -94,19 +98,25 @@ const commentController = {
                 },
             },
             {
+                $addFields: {
+                    likedByUser: {
+                        $in: [new mongoose.Types.ObjectId(req.user.id.toString()), "$likes"],
+                    },
+                },
+            },
+            {
                 $project: {
                     author: { _id: 1, firstName: 1, lastName: 1, imageMini: 1 },
                     content: 1,
-                    likes: 1,
+                    likedByUser: 1,
                     likesCount: { $size: "$likes" },
                     createdAt: 1,
                 },
             },
         ]);
         comment.author = comment.author[0];
-        comment = addLikedByUserFieldAndRemoveLikesField(comment, req.user.id);
         return res.status(200).json({
-            comment: comment,
+            comment,
         });
     },
     editComment: [
@@ -163,11 +173,17 @@ const commentController = {
             .skip(skipValue)
             .limit(limitValue);
         if (!comment) return res.sendStatus(404);
-        const users = comment.likes.map((user: { _id: string; _doc: any }) => {
-            const friendState = getFriendState(req.user.id, user._id);
-            return { ...user._doc, friendState };
-        });
-        return res.status(200).json({ users });
+        const users = comment.likes;
+        const map = async (
+            user: { _id: string; _doc: any },
+            done: (arg0: null, arg1: { _id: string; friendState: string }) => void
+        ) => {
+            const friendState = await getFriendState(req.user.id, user._id);
+            done(null, { ...user._doc, friendState });
+        };
+
+        const usersWithState = await async.map(users, map);
+        return res.status(200).json({ users: usersWithState });
     },
     unlike: async (req: Request, res: Response) => {
         const result = await Comment.updateOne(

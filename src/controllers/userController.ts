@@ -1,11 +1,10 @@
 import async from "async";
 import { Request, Response } from "express";
 import { validationResult } from "express-validator";
-import mongoose, { ObjectId } from "mongoose";
+import mongoose from "mongoose";
 import Comment from "../models/Comment";
 import Post from "../models/Post";
 import User from "../models/User";
-import { addLikedByUserFieldAndRemoveLikesField } from "../utils/manipulateModel";
 import notificationHandler from "../utils/notificationHandler";
 import parseQuery from "../utils/parseQuery";
 import { createProfilePicture, isImage } from "../utils/processImage";
@@ -158,21 +157,26 @@ const userController = {
                 },
             },
             {
+                $addFields: {
+                    likedByUser: {
+                        $in: [new mongoose.Types.ObjectId(req.user.id.toString()), "$likes"],
+                    },
+                },
+            },
+            {
                 $project: {
                     content: 1,
                     image: 1,
-                    likes: 1,
+                    likedByUser: 1,
+
                     likesCount: { $size: "$likes" },
                     commentsCount: { $size: "$comments" },
                     createdAt: 1,
                 },
             },
         ]);
-        const editedPosts = posts.map((post: { likes: Array<ObjectId>; likedByUser?: boolean }) => {
-            return addLikedByUserFieldAndRemoveLikesField(post, req.user.id);
-        });
 
-        return res.status(200).json({ posts: editedPosts });
+        return res.status(200).json({ posts });
     },
     getComments: async (req: Request, res: Response) => {
         const { limit, skip } = req.query;
