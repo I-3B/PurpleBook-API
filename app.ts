@@ -45,7 +45,7 @@ app.use((err: { message: any; status: any }, req: Request, res: Response, next: 
 });
 if (process.env.NODE_ENV != "test") {
     try {
-        app.listen(port, () => {
+        app.listen(process.env.PORT || port, () => {
             console.log(`Connected successfully on port ${port}`);
 
             if (process.env.NODE_ENV === "development") populateDB();
