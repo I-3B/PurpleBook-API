@@ -5,3 +5,4 @@ mongoDev.sh
 tests/utils/images
 coverage/
 .vscode/
+build/
