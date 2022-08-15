@@ -113,11 +113,18 @@ const getFriendRecommendation = (userId: string, token: String, status: Number, 
         .set("Authorization", `Bearer ${token}`)
         .expect(status);
 };
+const setAdmin = (userId: string, token: String, status: Number, query: String) => {
+    return request(app)
+        .post(`/api/users/${userId}/admin?${query}`)
+        .set("Authorization", `Bearer ${token}`)
+        .expect(status);
+};
 export {
     getUser,
     editUser,
     editUserWithImage,
     deleteUser,
+    setAdmin,
     getUserPosts,
     getUserComments,
     getFriendState,

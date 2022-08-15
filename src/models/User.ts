@@ -23,7 +23,7 @@ const User = new Schema(
                 viewed: Boolean,
             },
         ],
-        isAdmin: Boolean,
+        isAdmin: { type: Boolean, default: false },
     },
     { timestamps: true }
 );

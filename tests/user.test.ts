@@ -20,6 +20,7 @@ import {
     getUserComments,
     getUserHomeData,
     getUserPosts,
+    setAdmin,
     setFriendRequestsAsViewed,
 } from "./utils/user.utils";
 beforeAll(async () => await dbConnect());
@@ -79,7 +80,7 @@ describe("users route", () => {
             expect(user.imageMini.data.length).toBeGreaterThan(0);
         });
     });
-    describe("deleteUser", () => {
+    describe.only("deleteUser", () => {
         test("should be able to delete user if authorized", async () => {
             await signup("UserToDelete", 201);
             const { userId, token } = (await login("UserToDelete", 200)).body;
@@ -92,7 +93,14 @@ describe("users route", () => {
 
             await getUser(userId, newToken, 404);
         });
+        test("should be able to delete user if admin", async () => {
+            const { userId } = (await signup("UserToDeleteTwo", 201)).body;
+            await signup("WantToDelete", 201);
+            const { userId: uId, token } = (await login("WantToDelete", 200)).body;
+            await setAdmin(uId, token, 200, "grant=" + process.env.ADMIN_PASSWORD);
 
+            await deleteUser(userId, token, 200);
+        });
         test("should not be able to delete user if not authorized", async () => {
             const { userId } = (await signup("UserToDeleteTwo", 201)).body;
             await signup("WantToDelete", 201);
@@ -719,6 +727,29 @@ describe("users route", () => {
                     _id: r4Id,
                 })
             );
+        });
+    });
+    describe("setAdmin", () => {
+        test("grant", async () => {
+            await signup("User", 201);
+            const { userId: uId, token: uToken } = (await login("User", 200)).body;
+            await setAdmin(uId, uToken, 200, "grant=" + process.env.ADMIN_PASSWORD);
+            const { isAdmin } = await User.findById(uId, { isAdmin: 1 });
+            expect(isAdmin).toBe(true);
+        });
+        test("revoke", async () => {
+            await signup("User", 201);
+            const { userId: uId, token: uToken } = (await login("User", 200)).body;
+            await setAdmin(uId, uToken, 200, "revoke=" + process.env.ADMIN_PASSWORD);
+            const { isAdmin } = await User.findById(uId, { isAdmin: 1 });
+            expect(isAdmin).toBe(false);
+        });
+        test("should not work if password is wrong", async () => {
+            await signup("User", 201);
+            const { userId: uId, token: uToken } = (await login("User", 200)).body;
+            await setAdmin(uId, uToken, 400, "grant=" + "WRONG_PASSWORD");
+            const { isAdmin } = await User.findById(uId, { isAdmin: 1 });
+            expect(isAdmin).toBe(false);
         });
     });
 });

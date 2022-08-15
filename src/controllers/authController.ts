@@ -53,9 +53,7 @@ const authController = {
             }
         },
     ],
-    facebookLogin: (req: Request, res: Response) => {
-        // do something with req.user
-    },
+
     signup: [
         ...validateFirstAndLastName,
         body("email").exists().trim().isEmail().withMessage("Wrong email format.").escape(),

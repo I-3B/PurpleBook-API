@@ -6,7 +6,7 @@ const commentFindAndAuthorize = async (req: Request, res: Response, next: NextFu
     if (!comment) {
         return res.sendStatus(404);
     }
-    if (req.user.id !== comment.authorId.toString()) {
+    if (req.user.id !== comment.authorId.toString() && !req.user.isAdmin) {
         return res.sendStatus(403);
     }
 

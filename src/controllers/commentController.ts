@@ -118,6 +118,7 @@ const commentController = {
                 },
             },
         ]);
+        if (!comment) return res.sendStatus(404);
         comment.author = comment.author[0];
         return res.status(200).json({
             comment,

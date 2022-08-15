@@ -3,11 +3,11 @@ import multer from "multer";
 import userController from "../controllers/userController";
 const router = express.Router({ mergeParams: true });
 const upload = multer();
-
 router.get("/", userController.getUser);
 router.get("/edit_data", userController.getUserBeforeEdit);
 router.patch("/", upload.any(), userController.editUser);
 router.delete("/", userController.deleteUser);
+router.post("/admin", userController.setAdmin);
 
 router.get("/posts", userController.getPosts);
 router.get("/comments", userController.getComments);

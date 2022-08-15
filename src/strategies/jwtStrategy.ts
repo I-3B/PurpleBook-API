@@ -8,18 +8,18 @@ opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
 opts.secretOrKey = process.env.SECRET || "SECRET";
 export default new JwtStrategy(opts, function (
     jwt_payload: { email: String },
-    done: (arg0: null, arg1: { id: String } | boolean) => any
+    done: (arg0: null, arg1: { id: String; isAdmin: boolean } | boolean) => any
 ) {
     User.findOne(
         { email: jwt_payload.email },
-        { _id: 1 },
-        (err: null, user: { _id: mongoose.Schema.Types.ObjectId }) => {
+        { _id: 1, isAdmin: 1 },
+        (err: null, user: { _id: mongoose.Schema.Types.ObjectId; isAdmin: boolean }) => {
             if (err) {
                 return done(err, false);
             }
             if (user) {
                 const StringId = user._id.toString();
-                return done(null, { id: StringId });
+                return done(null, { id: StringId, isAdmin: user.isAdmin });
             } else {
                 return done(null, false);
             }

@@ -138,6 +138,18 @@ const userController = {
             return res.sendStatus(200);
         }
     },
+    setAdmin: async (req: Request, res: Response) => {
+        const { grant, revoke } = req.query;
+        if (revoke === process.env.ADMIN_PASSWORD) {
+            await User.findByIdAndUpdate(req.params.userId, { isAdmin: false });
+            return res.sendStatus(200);
+        }
+        if (grant === process.env.ADMIN_PASSWORD) {
+            await User.findByIdAndUpdate(req.params.userId, { isAdmin: true });
+            return res.sendStatus(200);
+        }
+        return res.sendStatus(400);
+    },
     getPosts: async (req: Request, res: Response) => {
         const { limit, skip } = req.query;
         const { limitValue, skipValue } = parseQuery(limit as string, 10, skip as string);
