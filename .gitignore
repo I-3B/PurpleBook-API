@@ -6,4 +6,3 @@ tests/utils/images
 coverage/
 .vscode/
 build/
-tests/
