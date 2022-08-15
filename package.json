@@ -4,7 +4,7 @@
     "description": "",
     "main": "app.js",
     "scripts": {
-        "dev": "ts-node-dev ./app.ts -- --NODE_ENV=dev",
+        "dev": "ts-node-dev ./app.ts -- --NODE_ENV=development",
         "test": "jest --detectOpenHandles --runInBand --watchAll",
         "start": "node dist/app.js",
         "postinstall": "tsc && mv -i -v build dist/ && rm -v -rf src"
