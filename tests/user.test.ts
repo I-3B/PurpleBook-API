@@ -80,7 +80,7 @@ describe("users route", () => {
             expect(user.imageMini.data.length).toBeGreaterThan(0);
         });
     });
-    describe.only("deleteUser", () => {
+    describe("deleteUser", () => {
         test("should be able to delete user if authorized", async () => {
             await signup("UserToDelete", 201);
             const { userId, token } = (await login("UserToDelete", 200)).body;
