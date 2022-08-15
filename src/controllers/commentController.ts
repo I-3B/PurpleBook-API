@@ -22,11 +22,11 @@ const commentController = {
             const postFound = !!(await Post.findById(postId));
             if (!postFound) return res.sendStatus(404);
             const comment = await Comment.create({
-                authorId: req.user.id,
+                authorId: req.user?.id,
                 postId: postId,
                 content: req.body.content,
             });
-            await notificationHandler.postCommentedOn(req.user.id, postId, comment._id);
+            await notificationHandler.postCommentedOn(req.user?.id || "", postId, comment._id);
             return res.status(201).json({
                 commentId: comment._id,
             });
@@ -63,7 +63,7 @@ const commentController = {
             {
                 $addFields: {
                     likedByUser: {
-                        $in: [new mongoose.Types.ObjectId(req.user.id.toString()), "$likes"],
+                        $in: [new mongoose.Types.ObjectId(req.user?.id.toString()), "$likes"],
                     },
                 },
             },
@@ -104,7 +104,7 @@ const commentController = {
             {
                 $addFields: {
                     likedByUser: {
-                        $in: [new mongoose.Types.ObjectId(req.user.id.toString()), "$likes"],
+                        $in: [new mongoose.Types.ObjectId(req.user?.id.toString()), "$likes"],
                     },
                 },
             },
@@ -147,10 +147,10 @@ const commentController = {
 
     addLike: async (req: Request, res: Response) => {
         const result = await Comment.updateOne(
-            { _id: req.params.commentId, likes: { $nin: [req.user.id] } },
+            { _id: req.params.commentId, likes: { $nin: [req.user?.id] } },
             {
                 $push: {
-                    likes: req.user.id,
+                    likes: req.user?.id,
                 },
             }
         );
@@ -160,7 +160,7 @@ const commentController = {
             else return res.sendStatus(404);
         }
         await notificationHandler.commentLiked(
-            req.user.id,
+            req.user?.id || "",
             req.params.postId,
             req.params.commentId
         );
@@ -183,7 +183,7 @@ const commentController = {
             user: { _id: string; _doc: any },
             done: (arg0: null, arg1: { _id: string; friendState: string }) => void
         ) => {
-            const friendState = await getFriendState(req.user.id, user._id);
+            const friendState = await getFriendState(req.user?.id || "", user._id);
             done(null, { ...user._doc, friendState });
         };
 
@@ -192,10 +192,10 @@ const commentController = {
     },
     unlike: async (req: Request, res: Response) => {
         const result = await Comment.updateOne(
-            { _id: req.params.commentId, likes: req.user.id },
+            { _id: req.params.commentId, likes: req.user?.id || "" },
             {
                 $pull: {
-                    likes: req.user.id,
+                    likes: req.user?.id,
                 },
             }
         );

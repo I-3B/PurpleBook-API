@@ -17,7 +17,7 @@ const userController = {
         const [user] = await User.aggregate([
             {
                 $match: {
-                    _id: new mongoose.Types.ObjectId(req.user.id.toString()),
+                    _id: new mongoose.Types.ObjectId(req.user?.id.toString()),
                 },
             },
             {
@@ -64,7 +64,7 @@ const userController = {
             createdAt: 1,
         });
         if (user) {
-            const friendState = await getFriendState(req.user.id, req.params.userId);
+            const friendState = await getFriendState(req.user?.id || "", req.params.userId);
             return res.status(200).json({ user: { ...user._doc, friendState } });
         }
         return res.sendStatus(404);
@@ -83,7 +83,7 @@ const userController = {
     editUser: [
         ...validateFirstAndLastName,
         async (req: Request, res: Response) => {
-            if (!req.user.userRouteAuthorized) return res.sendStatus(403);
+            if (!req.user?.userRouteAuthorized) return res.sendStatus(403);
             const errors = validationResult(req);
             const files = req.files as Express.Multer.File[];
             const imageBuffer = files[0] ? files[0].buffer : Buffer.from("");
@@ -128,7 +128,7 @@ const userController = {
         },
     ],
     deleteUser: async (req: Request, res: Response) => {
-        if (!req.user.userRouteAuthorized) {
+        if (!req.user?.userRouteAuthorized) {
             return res.sendStatus(403);
         }
         const result = await User.deleteOne({
@@ -171,7 +171,7 @@ const userController = {
             {
                 $addFields: {
                     likedByUser: {
-                        $in: [new mongoose.Types.ObjectId(req.user.id.toString()), "$likes"],
+                        $in: [new mongoose.Types.ObjectId(req.user?.id.toString()), "$likes"],
                     },
                 },
             },
@@ -247,7 +247,7 @@ const userController = {
         res.status(200).json({ friendState });
     },
     getFriendRecommendation: async (req: Request, res: Response) => {
-        if (!req.user.userRouteAuthorized) return res.sendStatus(403);
+        if (!req.user?.userRouteAuthorized) return res.sendStatus(403);
         const { limit, skip } = req.query;
         const { limitValue, skipValue } = parseQuery(limit as string, 10, skip as string);
         const friendRecommendation = await User.aggregate([
@@ -319,7 +319,7 @@ const userController = {
             recommend: { _id: string },
             done: (arg0: null, arg1: { _id: string; friendState: string }) => void
         ) => {
-            const friendState = await getFriendState(req.user.id, recommend._id);
+            const friendState = await getFriendState(req.user?.id || "", recommend._id);
             done(null, { ...recommend, friendState });
         };
 
@@ -328,7 +328,7 @@ const userController = {
         return res.status(200).json({ friendRecommendation: recommendationWithState });
     },
     getFriendRequests: async (req: Request, res: Response) => {
-        if (!req.user.userRouteAuthorized) {
+        if (!req.user?.userRouteAuthorized) {
             return res.sendStatus(403);
         }
         const { friendRequests } = await User.findById(req.params.userId, {
@@ -387,7 +387,7 @@ const userController = {
     },
 
     setFriendRequestsAsViewed: async (req: Request, res: Response) => {
-        if (!req.user.userRouteAuthorized) {
+        if (!req.user?.userRouteAuthorized) {
             return res.sendStatus(403);
         }
         await User.updateOne(
@@ -399,7 +399,7 @@ const userController = {
         return res.sendStatus(200);
     },
     deleteFriendRequest: async (req: Request, res: Response) => {
-        if (!req.user.userRouteAuthorized) {
+        if (!req.user?.userRouteAuthorized) {
             return res.sendStatus(403);
         }
         await User.updateOne(
@@ -416,7 +416,7 @@ const userController = {
         return res.sendStatus(200);
     },
     deleteSentFriendRequest: async (req: Request, res: Response) => {
-        if (!req.user.userRouteAuthorized) {
+        if (!req.user?.userRouteAuthorized) {
             return res.sendStatus(403);
         }
         const result = await User.updateOne(
@@ -433,7 +433,7 @@ const userController = {
         return res.sendStatus(200);
     },
     acceptFriendRequest: async (req: Request, res: Response) => {
-        if (!req.user.userRouteAuthorized) {
+        if (!req.user?.userRouteAuthorized) {
             return res.sendStatus(403);
         }
         const userDeletedFromFriendRequests = await User.updateOne(
@@ -484,7 +484,7 @@ const userController = {
             friends: 1,
         }).populate("friends", { _id: 1, firstName: 1, lastName: 1, imageMini: 1 });
         const map = async (friend: friendI, done: (arg0: null, arg1: friendI) => void) => {
-            const friendState = await getFriendState(req.user.id, friend._id);
+            const friendState = await getFriendState(req.user?.id || "", friend._id);
 
             done(null, { ...friend._doc, friendState });
         };
@@ -495,7 +495,7 @@ const userController = {
         });
     },
     deleteFriend: async (req: Request, res: Response) => {
-        if (!req.user.userRouteAuthorized) {
+        if (!req.user?.userRouteAuthorized) {
             return res.sendStatus(403);
         }
         const session = await User.startSession();

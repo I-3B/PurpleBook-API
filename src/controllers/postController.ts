@@ -18,8 +18,8 @@ const postController = {
             skip as string
         );
 
-        const { friends } = await User.findOne({ _id: req.user.id }, { friends: 1 });
-        const matchPostAuthors = [req.user.id, ...friends];
+        const { friends } = await User.findOne({ _id: req.user?.id }, { friends: 1 });
+        const matchPostAuthors = [req.user?.id, ...friends];
         const matchPostAuthorsAsObjectId = matchPostAuthors.map((authorId) => {
             return new mongoose.Types.ObjectId(authorId);
         });
@@ -51,7 +51,7 @@ const postController = {
             {
                 $addFields: {
                     likedByUser: {
-                        $in: [new mongoose.Types.ObjectId(req.user.id.toString()), "$likes"],
+                        $in: [new mongoose.Types.ObjectId(req.user?.id.toString()), "$likes"],
                     },
                 },
             },
@@ -107,7 +107,7 @@ const postController = {
             }
             const image = await createPostImage(imageBuffer);
             const post = await Post.create({
-                authorId: req.user.id,
+                authorId: req.user?.id,
                 content: req.body.content,
                 image: { data: image, contentType: imageMimetype },
             });
@@ -134,7 +134,7 @@ const postController = {
             {
                 $addFields: {
                     likedByUser: {
-                        $in: [new mongoose.Types.ObjectId(req.user.id.toString()), "$likes"],
+                        $in: [new mongoose.Types.ObjectId(req.user?.id.toString()), "$likes"],
                     },
                 },
             },
@@ -176,10 +176,10 @@ const postController = {
 
     addLike: async (req: Request, res: Response) => {
         const result = await Post.updateOne(
-            { _id: req.params.postId, likes: { $nin: [req.user.id] } },
+            { _id: req.params.postId, likes: { $nin: [req.user?.id] } },
             {
                 $push: {
-                    likes: req.user.id,
+                    likes: req.user?.id,
                 },
             }
         );
@@ -188,7 +188,7 @@ const postController = {
             if (postFound) return res.sendStatus(400);
             else return res.sendStatus(404);
         }
-        await notificationHandler.postLiked(req.user.id, req.params.postId);
+        await notificationHandler.postLiked(req.user?.id || "", req.params.postId);
 
         return res.sendStatus(200);
     },
@@ -209,7 +209,7 @@ const postController = {
             user: { _id: string; _doc: any },
             done: (arg0: null, arg1: { _id: string; friendState: string }) => void
         ) => {
-            const friendState = await getFriendState(req.user.id, user._id);
+            const friendState = await getFriendState(req.user?.id || "", user._id);
             done(null, { ...user._doc, friendState });
         };
 
@@ -218,10 +218,10 @@ const postController = {
     },
     unlike: async (req: Request, res: Response) => {
         const result = await Post.updateOne(
-            { _id: req.params.postId, likes: req.user.id },
+            { _id: req.params.postId, likes: req.user?.id },
             {
                 $pull: {
-                    likes: req.user.id,
+                    likes: req.user?.id,
                 },
             }
         );

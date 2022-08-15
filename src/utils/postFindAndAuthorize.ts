@@ -6,7 +6,7 @@ const postFindAndAuthorize = async (req: Request, res: Response, next: NextFunct
     if (!post) {
         return res.sendStatus(404);
     }
-    if (req.user.id !== post.authorId.toString() && !req.user.isAdmin) {
+    if (req.user?.id !== post.authorId.toString() && !req.user?.isAdmin) {
         return res.sendStatus(403);
     }
 

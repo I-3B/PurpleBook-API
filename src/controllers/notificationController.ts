@@ -7,7 +7,7 @@ const notificationController = {
         const { skip, limit } = req.query;
         const { skipValue, limitValue } = parseQuery(limit as string, 15, skip as string);
         const notifications = await Notification.find(
-            { userId: req.user.id },
+            { userId: req.user?.id },
             { updatedAt: 0, userId: 0 }
         )
             .sort({ createdAt: -1 })
@@ -16,7 +16,7 @@ const notificationController = {
         return res.status(200).json({ notifications });
     },
     setNotificationsAsViewed: async (req: Request, res: Response) => {
-        await Notification.updateMany({ userId: req.user.id, viewed: false }, { viewed: true });
+        await Notification.updateMany({ userId: req.user?.id, viewed: false }, { viewed: true });
         return res.sendStatus(200);
     },
 };
