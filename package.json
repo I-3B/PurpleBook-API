@@ -5,7 +5,8 @@
     "main": "app.js",
     "scripts": {
         "start": "ts-node-dev ./app.ts -- --NODE_ENV=dev",
-        "test": "jest --detectOpenHandles --runInBand --watchAll"
+        "test": "jest --detectOpenHandles --runInBand --watchAll",
+        "postinstall": "tsc"
     },
     "author": "",
     "license": "ISC",
