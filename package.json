@@ -60,5 +60,8 @@
         "mongodbMemoryServer": {
             "version": "latest"
         }
+    },
+    "engines": {
+        "node": "16.14.0"
     }
 }
