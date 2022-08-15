@@ -15,7 +15,6 @@ import APIRouter from "./src/routes/APIRouter";
 import jwtStrategy from "./src/strategies/jwtStrategy";
 import authenticateRoute from "./src/utils/authenticateRoute";
 const app: Application = express();
-const port = 8080;
 
 passport.use(jwtStrategy);
 // Body parsing Middleware
@@ -45,9 +44,7 @@ app.use((err: { message: any; status: any }, req: Request, res: Response, next: 
 });
 if (process.env.NODE_ENV != "test") {
     try {
-        app.listen(process.env.PORT || port, () => {
-            console.log(`Connected successfully on port ${port}`);
-
+        app.listen(process.env.PORT || 3000, () => {
             if (process.env.NODE_ENV === "development") populateDB();
         });
     } catch (error: any) {
