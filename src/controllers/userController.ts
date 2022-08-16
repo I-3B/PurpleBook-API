@@ -226,10 +226,17 @@ const userController = {
                 },
             },
             {
+                $addFields: {
+                    likedByUser: {
+                        $in: [new mongoose.Types.ObjectId(req.user?.id.toString()), "$likes"],
+                    },
+                },
+            },
+            {
                 $project: {
                     post: 1,
                     content: 1,
-                    likes: 1,
+                    likedByUser: 1,
                     likesCount: { $size: "$likes" },
                     createdAt: 1,
                 },
