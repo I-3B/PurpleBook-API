@@ -44,7 +44,8 @@ app.use((err: { message: any; status: any }, req: Request, res: Response, next: 
 });
 if (process.env.NODE_ENV != "test") {
     try {
-        app.listen(process.env.PORT || 3000, () => {
+        app.listen(process.env.PORT || 8080, () => {
+            console.log(process.env.PORT || 8080);
             if (process.env.NODE_ENV === "development") populateDB();
         });
     } catch (error: any) {

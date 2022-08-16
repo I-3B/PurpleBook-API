@@ -16,13 +16,16 @@ const User = new Schema(
             data: Buffer,
             contentType: String,
         },
-        friends: [{ type: Schema.Types.ObjectId, ref: "User" }],
-        friendRequests: [
-            {
-                user: { type: Schema.Types.ObjectId, ref: "User" },
-                viewed: Boolean,
-            },
-        ],
+        friends: { type: [{ type: Schema.Types.ObjectId, ref: "User" }], default: [] },
+        friendRequests: {
+            type: [
+                {
+                    user: { type: Schema.Types.ObjectId, ref: "User" },
+                    viewed: Boolean,
+                },
+            ],
+            default: [],
+        },
         isAdmin: { type: Boolean, default: false },
     },
     { timestamps: true }
