@@ -11,7 +11,7 @@ const isImage = async (imageBuffer: Buffer) => {
 const createProfilePicture = async (imageBuffer: Buffer) => {
     const profilePicture = { full: Buffer.from(""), mini: Buffer.from("") };
     if (await isImage(imageBuffer)) {
-        profilePicture.full = await sharp(imageBuffer).resize(512, 512).toBuffer();
+        profilePicture.full = await sharp(imageBuffer).resize(400, 400).toBuffer();
         profilePicture.mini = await sharp(imageBuffer).resize(64, 64).toBuffer();
     }
     return profilePicture;
@@ -20,7 +20,7 @@ const createPostImage = async (imageBuffer: Buffer) => {
     let postImage = Buffer.from("");
     if (await isImage(imageBuffer)) {
         postImage = await sharp(imageBuffer)
-            .resize(768, 768, {
+            .resize(512, 512, {
                 withoutEnlargement: true,
                 fit: "inside",
             })

@@ -216,7 +216,7 @@ const userController = {
                             $project: {
                                 _id: 1,
                                 postAuthorFirstName: "$postAuthor.firstName",
-                                contentPreview: { $substr: ["$content", 0, 60] },
+                                contentPreview: { $substrCP: ["$content", 0, 60] },
                             },
                         },
                     ],
