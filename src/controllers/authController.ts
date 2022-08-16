@@ -16,9 +16,12 @@ const authController = {
                     errors: [...errors.array()],
                 });
             } else {
-                const user = await User.findOne({
-                    email: req.body.email,
-                });
+                const user = await User.findOne(
+                    {
+                        email: req.body.email,
+                    },
+                    { password: 1, email: 1, _id: 1, isAdmin: 1 }
+                );
                 if (user) {
                     bcrypt.compare(req.body.password, user.password, (err, result) => {
                         if (err) return next(err);
@@ -28,6 +31,7 @@ const authController = {
                             return res.status(200).json({
                                 userId: user._id,
                                 token,
+                                ...(user.isAdmin && { isAdmin: user.isAdmin }),
                             });
                         } else {
                             return res.status(400).json({
