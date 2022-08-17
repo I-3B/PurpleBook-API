@@ -258,15 +258,16 @@ const userController = {
         const { limit, skip } = req.query;
         const { limitValue, skipValue } = parseQuery(limit as string, 10, skip as string);
         const friendRecommendation = await User.aggregate([
-            { $match: { _id: new mongoose.Types.ObjectId(req.params.userId) } },
-            { $project: { friend: "$friends", _id: 0 } },
-            { $unwind: "$friend" },
+            {
+                $match: {
+                    _id: new mongoose.Types.ObjectId(req.params.userId),
+                },
+            },
+            { $project: { _id: 1, friends: 1 } },
             {
                 $lookup: {
                     from: "users",
-                    localField: "friend",
-                    foreignField: "friends",
-                    as: "friendFriend",
+                    as: "rec",
                     pipeline: [
                         {
                             $match: {
@@ -275,52 +276,78 @@ const userController = {
                                 },
                             },
                         },
-                        { $project: { _id: 1 } },
+                        { $project: { id_: 1, firstName: 1, lastName: 1, friends: 1 } },
                     ],
                 },
             },
-            { $set: { friendFriend: "$friendFriend._id" } },
-            { $unwind: "$friendFriend" },
-            {
-                $group: {
-                    _id: "$_id",
-                    friend: { $addToSet: "$friend" },
-                    friendFriend: { $push: "$friendFriend" },
-                },
-            },
-            { $unwind: "$friendFriend" },
-            {
-                $match: {
-                    $expr: {
-                        $not: { $in: ["$friendFriend", "$friend"] },
-                    },
-                },
-            },
-            { $group: { _id: "$friendFriend", mutualFriends: { $sum: 1 } } },
-            { $match: { _id: { $ne: null } } },
-            { $sort: { mutualFriends: -1, _id: 1 } },
-            { $limit: skipValue + limitValue },
-            { $skip: skipValue },
-            {
-                $lookup: {
-                    from: "users",
-                    localField: "_id",
-                    foreignField: "_id",
-                    as: "data",
-                },
-            },
-            { $unwind: "$data" },
+            { $unwind: "$rec" },
             {
                 $addFields: {
-                    "data.mutualFriends": "$mutualFriends",
+                    "rec.user._id": "$_id",
+                    "rec.user.friends": "$friends",
                 },
             },
             {
                 $replaceRoot: {
-                    newRoot: "$data",
+                    newRoot: "$rec",
                 },
             },
-            { $project: { mutualFriends: 1, firstName: 1, lastName: 1, imageMini: 1 } },
+            {
+                $match: {
+                    $expr: {
+                        $not: { $in: ["$user._id", "$friends"] },
+                    },
+                },
+            },
+            {
+                $unwind: {
+                    path: "$friends",
+                    preserveNullAndEmptyArrays: true,
+                },
+            },
+            {
+                $unwind: {
+                    path: "$user.friends",
+                    preserveNullAndEmptyArrays: true,
+                },
+            },
+            {
+                $group: {
+                    _id: "$_id",
+                    firstName: { $first: "$firstName" },
+                    lastName: { $first: "$lastName" },
+                    mutualFriends: {
+                        $push: {
+                            $cond: [
+                                { $eq: ["$user.friends", "$friends"] },
+                                { friends: "$friends" },
+                                null,
+                            ],
+                        },
+                    },
+                },
+            },
+            { $unwind: "$mutualFriends" },
+            {
+                $project: {
+                    firstName: 1,
+                    lastName: 1,
+                    mutualFriends: {
+                        $cond: { if: { $eq: ["$mutualFriends", null] }, then: 0, else: 1 },
+                    },
+                },
+            },
+            {
+                $group: {
+                    _id: "$_id",
+                    firstName: { $first: "$firstName" },
+                    lastName: { $first: "$lastName" },
+                    mutualFriends: { $sum: "$mutualFriends" },
+                },
+            },
+            { $sort: { mutualFriends: -1, _id: 1 } },
+            { $limit: skipValue + limitValue },
+            { $skip: skipValue },
         ]);
         const map = async (
             recommend: { _id: string },
@@ -329,7 +356,6 @@ const userController = {
             const friendState = await getFriendState(req.user?.id || "", recommend._id);
             done(null, { ...recommend, friendState });
         };
-
         const recommendationWithState = await async.map(friendRecommendation, map);
 
         return res.status(200).json({ friendRecommendation: recommendationWithState });

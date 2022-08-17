@@ -629,7 +629,6 @@ describe("users route", () => {
             await addFriendRequest(f2Id, uToken, 200);
             //friend's friends
             await addFriendRequest(f1Id, f2Token, 200);
-            await addFriendRequest(r1Id, f1Token, 200);
             await addFriendRequest(r2Id, f2Token, 200);
             await addFriendRequest(r3Id, f1Token, 200);
             await addFriendRequest(r3Id, f2Token, 200);
@@ -638,7 +637,6 @@ describe("users route", () => {
             await acceptFriendRequest(f2Id, f2Token, uId, 200);
 
             await acceptFriendRequest(f2Id, f2Token, f1Id, 200);
-            await acceptFriendRequest(r1Id, r1Token, f1Id, 200);
             await acceptFriendRequest(r2Id, r2Token, f2Id, 200);
             await acceptFriendRequest(r3Id, r3Token, f1Id, 200);
             await acceptFriendRequest(r3Id, r3Token, f2Id, 200);
@@ -647,7 +645,7 @@ describe("users route", () => {
             expect(friendRecommendation).toContainEqual(
                 expect.objectContaining({
                     _id: r1Id,
-                    mutualFriends: 1,
+                    mutualFriends: 0,
                 })
             );
             expect(friendRecommendation).toContainEqual(
