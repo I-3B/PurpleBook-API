@@ -610,7 +610,7 @@ describe("users route", () => {
         });
     });
     describe("getFriendRecommendation", () => {
-        test("should return friends' friends (without user's already friends)", async () => {
+        test("should return recommendation without user's already friends", async () => {
             await signup("User", 201);
             await signup("FriendOne", 201);
             await signup("FriendTwo", 201);
@@ -640,7 +640,6 @@ describe("users route", () => {
             await acceptFriendRequest(r2Id, r2Token, f2Id, 200);
             await acceptFriendRequest(r3Id, r3Token, f1Id, 200);
             await acceptFriendRequest(r3Id, r3Token, f2Id, 200);
-
             const { friendRecommendation } = (await getFriendRecommendation(uId, uToken, 200)).body;
             expect(friendRecommendation).toContainEqual(
                 expect.objectContaining({
@@ -673,6 +672,51 @@ describe("users route", () => {
             expect(friendRecommendation).not.toContainEqual(
                 expect.objectContaining({
                     _id: f2Id,
+                })
+            );
+        });
+        test("should return recommendation without mutual friends", async () => {
+            await signup("User", 201);
+            await signup("RecOne", 201);
+            await signup("RecTwo", 201);
+            await signup("RecThree", 201);
+            await signup("RecFour", 201);
+            const { userId: uId, token: uToken } = (await login("User", 200)).body;
+            const { userId: r1Id, token: r1Token } = (await login("RecOne", 200)).body;
+            const { userId: r2Id, token: r2Token } = (await login("RecTwo", 200)).body;
+            const { userId: r3Id, token: r3Token } = (await login("RecThree", 200)).body;
+            const { userId: r4Id, token: r4Token } = (await login("RecFour", 200)).body;
+            await addFriendRequest(r1Id, r2Token, 200);
+            await addFriendRequest(r3Id, r2Token, 200);
+
+            await acceptFriendRequest(r1Id, r1Token, r2Id, 200);
+            await acceptFriendRequest(r3Id, r3Token, r2Id, 200);
+            const { friendRecommendation } = (await getFriendRecommendation(uId, uToken, 200)).body;
+
+            expect(friendRecommendation.length).toBe(4);
+
+            expect(friendRecommendation).toContainEqual(
+                expect.objectContaining({
+                    _id: r1Id,
+                    mutualFriends: 0,
+                })
+            );
+            expect(friendRecommendation).toContainEqual(
+                expect.objectContaining({
+                    _id: r2Id,
+                    mutualFriends: 0,
+                })
+            );
+            expect(friendRecommendation).toContainEqual(
+                expect.objectContaining({
+                    _id: r3Id,
+                    mutualFriends: 0,
+                })
+            );
+            expect(friendRecommendation).toContainEqual(
+                expect.objectContaining({
+                    _id: r4Id,
+                    mutualFriends: 0,
                 })
             );
         });

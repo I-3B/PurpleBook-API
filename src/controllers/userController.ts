@@ -328,12 +328,24 @@ const userController = {
                 },
             },
             { $unwind: "$mutualFriends" },
+            { $project: { firstName: 1, lastName: 1, mutualFriends: "$mutualFriends.friends" } },
             {
                 $project: {
                     firstName: 1,
                     lastName: 1,
                     mutualFriends: {
-                        $cond: { if: { $eq: ["$mutualFriends", null] }, then: 0, else: 1 },
+                        $cond: {
+                            if: {
+                                $eq: [
+                                    {
+                                        $type: "$mutualFriends",
+                                    },
+                                    "objectId",
+                                ],
+                            },
+                            then: 1,
+                            else: 0,
+                        },
                     },
                 },
             },
@@ -349,6 +361,7 @@ const userController = {
             { $limit: skipValue + limitValue },
             { $skip: skipValue },
         ]);
+        console.log(friendRecommendation);
         const map = async (
             recommend: { _id: string },
             done: (arg0: null, arg1: { _id: string; friendState: string }) => void
@@ -471,7 +484,7 @@ const userController = {
         }
         const userDeletedFromFriendRequests = await User.updateOne(
             {
-                _id: req.user.id,
+                _id: req.params.userId,
             },
             {
                 $pull: {
