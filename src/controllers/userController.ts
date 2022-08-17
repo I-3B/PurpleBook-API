@@ -276,7 +276,15 @@ const userController = {
                                 },
                             },
                         },
-                        { $project: { id_: 1, firstName: 1, lastName: 1, friends: 1 } },
+                        {
+                            $project: {
+                                id_: 1,
+                                imageMini: 1,
+                                firstName: 1,
+                                lastName: 1,
+                                friends: 1,
+                            },
+                        },
                     ],
                 },
             },
@@ -316,6 +324,7 @@ const userController = {
                     _id: "$_id",
                     firstName: { $first: "$firstName" },
                     lastName: { $first: "$lastName" },
+                    imageMini: { $first: "$imageMini" },
                     mutualFriends: {
                         $push: {
                             $cond: [
@@ -328,11 +337,19 @@ const userController = {
                 },
             },
             { $unwind: "$mutualFriends" },
-            { $project: { firstName: 1, lastName: 1, mutualFriends: "$mutualFriends.friends" } },
             {
                 $project: {
                     firstName: 1,
                     lastName: 1,
+                    imageMini: 1,
+                    mutualFriends: "$mutualFriends.friends",
+                },
+            },
+            {
+                $project: {
+                    firstName: 1,
+                    lastName: 1,
+                    imageMini: 1,
                     mutualFriends: {
                         $cond: {
                             if: {
@@ -354,6 +371,7 @@ const userController = {
                     _id: "$_id",
                     firstName: { $first: "$firstName" },
                     lastName: { $first: "$lastName" },
+                    imageMini: { $first: "$imageMini" },
                     mutualFriends: { $sum: "$mutualFriends" },
                 },
             },
@@ -361,7 +379,6 @@ const userController = {
             { $limit: skipValue + limitValue },
             { $skip: skipValue },
         ]);
-        console.log(friendRecommendation);
         const map = async (
             recommend: { _id: string },
             done: (arg0: null, arg1: { _id: string; friendState: string }) => void
