@@ -12,11 +12,7 @@ import { getFriendState } from "./userController";
 const postController = {
     getFeed: async (req: Request, res: Response) => {
         const { limit, skip } = req.query;
-        const { limitValue, skipValue, sortByStage } = parseQuery(
-            limit as string,
-            20,
-            skip as string
-        );
+        const { limitValue, skipValue } = parseQuery(limit as string, 20, skip as string);
 
         const { friends } = await User.findOne({ _id: req.user?.id }, { friends: 1 });
         const matchPostAuthors = [req.user?.id, ...friends];
@@ -61,7 +57,6 @@ const postController = {
                     content: 1,
                     image: 1,
                     likedByUser: 1,
-
                     likesCount: { $size: "$likes" },
                     commentsCount: { $size: "$comments" },
                     createdAt: 1,

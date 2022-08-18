@@ -151,8 +151,13 @@ const userController = {
         return res.sendStatus(400);
     },
     getPosts: async (req: Request, res: Response) => {
-        const { limit, skip } = req.query;
-        const { limitValue, skipValue } = parseQuery(limit as string, 10, skip as string);
+        const { limit, skip, sort } = req.query;
+        const { limitValue, skipValue, sortByStage } = parseQuery(
+            limit as string,
+            10,
+            skip as string,
+            sort as string
+        );
         const posts = await Post.aggregate([
             {
                 $match: { authorId: new mongoose.Types.ObjectId(req.params.userId) },
@@ -180,19 +185,24 @@ const userController = {
                     content: 1,
                     image: 1,
                     likedByUser: 1,
-
                     likesCount: { $size: "$likes" },
                     commentsCount: { $size: "$comments" },
                     createdAt: 1,
                 },
             },
+            sortByStage,
         ]);
 
         return res.status(200).json({ posts });
     },
     getComments: async (req: Request, res: Response) => {
-        const { limit, skip } = req.query;
-        const { limitValue, skipValue } = parseQuery(limit as string, 10, skip as string);
+        const { limit, skip, sort } = req.query;
+        const { limitValue, skipValue, sortByStage } = parseQuery(
+            limit as string,
+            10,
+            skip as string,
+            sort as string
+        );
         const comments = await Comment.aggregate([
             {
                 $match: { authorId: new mongoose.Types.ObjectId(req.params.userId) },
@@ -241,6 +251,7 @@ const userController = {
                     createdAt: 1,
                 },
             },
+            sortByStage,
         ]);
         comments.map((comment: { post: any }) => {
             comment.post = comment.post[0];
