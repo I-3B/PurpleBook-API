@@ -229,12 +229,14 @@ const userController = {
                                 contentPreview: { $substrCP: ["$content", 0, 60] },
                             },
                         },
+                        { $unwind: "$postAuthorFirstName" },
                     ],
                     localField: "postId",
                     foreignField: "_id",
                     as: "post",
                 },
             },
+            { $unwind: "$post" },
             {
                 $addFields: {
                     likedByUser: {
@@ -253,11 +255,7 @@ const userController = {
             },
             sortByStage,
         ]);
-        comments.map((comment: { post: any }) => {
-            comment.post = comment.post[0];
-            comment.post.postAuthorFirstName = comment.post.postAuthorFirstName[0];
-            return comment;
-        });
+
         return res.status(200).json({ comments: comments });
     },
     getFriendState: async (req: Request, res: Response) => {

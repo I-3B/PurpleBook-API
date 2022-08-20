@@ -36,6 +36,7 @@ const postController = {
                     as: "author",
                 },
             },
+            { $unwind: "$author" },
             {
                 $lookup: {
                     from: "comments",
@@ -63,10 +64,6 @@ const postController = {
                 },
             },
         ]);
-        posts = posts.map((post) => {
-            post.author = post.author[0];
-            return post;
-        });
         return res.status(200).json({ posts });
     },
 
@@ -126,6 +123,7 @@ const postController = {
                     as: "author",
                 },
             },
+            { $unwind: "$author" },
             {
                 $addFields: {
                     likedByUser: {
@@ -145,7 +143,6 @@ const postController = {
             },
         ]);
         if (!post) return res.sendStatus(404);
-        post.author = post.author[0];
         return res.status(200).json({
             post,
         });

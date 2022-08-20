@@ -60,6 +60,7 @@ const commentController = {
                     as: "author",
                 },
             },
+            { $unwind: "$author" },
             {
                 $addFields: {
                     likedByUser: {
@@ -78,12 +79,8 @@ const commentController = {
                 },
             },
         ]);
-        const editedComments = comments.map((comment: any) => {
-            comment.author = comment.author[0];
-            return comment;
-        });
         return res.status(200).json({
-            comments: editedComments,
+            comments,
         });
     },
     getComment: async (req: Request, res: Response) => {
@@ -101,6 +98,7 @@ const commentController = {
                     as: "author",
                 },
             },
+            { $unwind: "$author" },
             {
                 $addFields: {
                     likedByUser: {
@@ -119,7 +117,6 @@ const commentController = {
             },
         ]);
         if (!comment) return res.sendStatus(404);
-        comment.author = comment.author[0];
         return res.status(200).json({
             comment,
         });
