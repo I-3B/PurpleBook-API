@@ -4,6 +4,7 @@ declare global {
             id: String;
             isAdmin: boolean;
             userRouteAuthorized: boolean;
+            email?: string;
         }
     }
 }

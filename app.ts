@@ -12,11 +12,13 @@ import passport from "passport";
 import path from "path";
 import populateDB from "./populateDB";
 import APIRouter from "./src/routes/APIRouter";
+import fbStrategy from "./src/strategies/FacebookTokenStrategy";
 import jwtStrategy from "./src/strategies/jwtStrategy";
 import authenticateRoute from "./src/utils/authenticateRoute";
 const app: Application = express();
 
 passport.use(jwtStrategy);
+passport.use(fbStrategy);
 // Body parsing Middleware
 app.use(cors());
 app.use(logger("dev"));

@@ -1,35 +1,55 @@
-import User from "../models/User";
-
 require("dotenv").config();
-const FacebookTokenStrategy = require("passport-facebook-token");
-export default new FacebookTokenStrategy(
+import FacebookTokenStrategy from "passport-facebook-token";
+import User from "../models/User";
+const fbStrategy = new FacebookTokenStrategy(
     {
-        clientID: process.env["FACEBOOK_APP_ID"],
-        clientSecret: process.env["FACEBOOK_APP_SECRET"],
+        clientID: process.env["FACEBOOK_APP_ID"] || "",
+        clientSecret: process.env["FACEBOOK_APP_SECRET"] || "",
         fbGraphVersion: "v3.0",
     },
-    function (
+    async function (
         accessToken: any,
         refreshToken: any,
-        profile: {
-            id: any;
-            _json: { first_name: any; last_name: any; email: any };
-            photos: { value: any }[];
-        },
+        profile: any,
         done: (arg0: any, arg1: any) => any
     ) {
-        User.findOneAndUpdate(
-            { facebookId: profile.id },
-            {
-                firstName: profile._json.first_name,
-                lastName: profile._json.last_name,
-                email: profile._json.email,
-                profilePicUrl: profile.photos[0].value,
-            },
-            { upsert: true },
-            function (error: any, user: any) {
-                return done(error, user);
-            }
+        const userFound = await User.findOne(
+            { email: profile._json.email },
+            { facebookId: 1, email: 1, isAdmin: 1 }
         );
+        if (!userFound) {
+            User.create(
+                {
+                    facebookId: profile.id,
+                    firstName: profile._json.first_name,
+                    lastName: profile._json.last_name,
+                    email: profile._json.email,
+                    imageMini: {
+                        data: Buffer.from(""),
+                        contentType: "",
+                    },
+                    imageFull: {
+                        data: Buffer.from(""),
+                        contentType: "",
+                    },
+                },
+                function (error: any, user: any) {
+                    return done(error, {
+                        id: user._id.toString(),
+                        email: user.email,
+                        isAdmin: false,
+                    });
+                }
+            );
+        } else if (userFound.email && !userFound.facebookId) {
+            return done(null, false);
+        } else if (userFound.email && userFound.facebookId) {
+            done(null, {
+                id: userFound._id.toString(),
+                email: userFound.email,
+                isAdmin: userFound.isAdmin,
+            });
+        }
     }
 );
+export default fbStrategy;

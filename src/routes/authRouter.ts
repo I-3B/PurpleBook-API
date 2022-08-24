@@ -8,7 +8,7 @@ router.post("/signup", upload.any(), authController.signup);
 router.post("/login", authController.login);
 router.post(
     "/facebook",
-    passport.authenticate("facebook-token"),
+    passport.authenticate("facebook-token", { session: false }),
     authController.facebookLogin
 );
 

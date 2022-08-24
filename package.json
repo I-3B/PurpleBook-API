@@ -27,6 +27,7 @@
         "@types/multer": "^1.4.7",
         "@types/node": "^17.0.21",
         "@types/passport": "^1.0.7",
+        "@types/passport-facebook-token": "^0.4.35",
         "@types/sharp": "^0.30.0",
         "@types/supertest": "^2.0.11",
         "jest": "^27.5.1",

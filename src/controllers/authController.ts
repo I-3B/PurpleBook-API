@@ -8,7 +8,7 @@ import { validateFirstAndLastName } from "../utils/validateForm";
 const authController = {
     login: [
         body("email").exists().isEmail().withMessage("Wrong email format.").escape(),
-        body("password").escape(),
+        body("password").exists().escape(),
         async (req: Request, res: Response, next: NextFunction) => {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
@@ -23,6 +23,16 @@ const authController = {
                     { password: 1, email: 1, _id: 1, isAdmin: 1 }
                 );
                 if (user) {
+                    if (!user.password) {
+                        return res.status(400).json({
+                            error: {
+                                value: req.body.password,
+                                msg: "wrong password",
+                                param: "password",
+                                location: "body",
+                            },
+                        });
+                    }
                     bcrypt.compare(req.body.password, user.password, (err, result) => {
                         if (err) return next(err);
                         if (result) {
@@ -116,6 +126,15 @@ const authController = {
             }
         },
     ],
+    facebookLogin: (req: Request, res: Response) => {
+        const secret = process.env.SECRET || "SECRET";
+        const token = jwt.sign({ email: req.user?.email }, secret);
+        return res.status(200).json({
+            userId: req.user?.id,
+            token,
+            ...(req.user?.isAdmin && { isAdmin: req.user.isAdmin }),
+        });
+    },
 };
 const isEmailUsed = async (email: String) => {
     const found = await User.findOne({ email });
