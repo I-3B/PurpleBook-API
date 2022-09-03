@@ -41,9 +41,7 @@ const fbStrategy = new FacebookTokenStrategy(
                     });
                 }
             );
-        } else if (userFound.email && !userFound.facebookId) {
-            return done(null, false);
-        } else if (userFound.email && userFound.facebookId) {
+        } else {
             done(null, {
                 id: userFound._id.toString(),
                 email: userFound.email,
