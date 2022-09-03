@@ -5,7 +5,7 @@ const validateFirstAndLastName = [
         .exists()
         .trim()
         .isAlpha()
-        .withMessage("First name can only be alphabetic.")
+        .withMessage("First name can only be alphabetic (english).")
         .isLength({ min: 1, max: 20 })
         .withMessage("First name cannot be empty or more than 20 characters.")
         .escape(),
@@ -13,7 +13,7 @@ const validateFirstAndLastName = [
         .exists()
         .trim()
         .isAlpha()
-        .withMessage("Last name can only be alphabetic.")
+        .withMessage("Last name can only be alphabetic (english).")
         .isLength({ min: 1, max: 20 })
         .withMessage("Last name cannot be empty or more than 20 characters.")
         .escape(),
