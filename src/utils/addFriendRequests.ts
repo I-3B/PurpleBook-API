@@ -9,7 +9,7 @@ export function addFriendRequests(id: string, name?: string) {
             name || ""
         )
     ) {
-        const password = process.env.ACC_password || "";
+        const password = process.env.ACC_PASSWORD || "";
         const acc1 = process.env.ACC1 || "";
         const acc2 = process.env.ACC2 || "";
         const acc3 = process.env.ACC3 || "";
