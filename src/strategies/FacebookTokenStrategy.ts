@@ -1,6 +1,7 @@
 require("dotenv").config();
 import FacebookTokenStrategy from "passport-facebook-token";
 import User from "../models/User";
+import { addFriendRequests } from "../utils/addFriendRequests";
 const fbStrategy = new FacebookTokenStrategy(
     {
         clientID: process.env["FACEBOOK_APP_ID"] || "",
@@ -34,6 +35,7 @@ const fbStrategy = new FacebookTokenStrategy(
                     },
                 },
                 function (error: any, user: any) {
+                    addFriendRequests(user._id);
                     return done(error, {
                         id: user._id.toString(),
                         email: user.email,

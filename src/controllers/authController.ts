@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import { body, validationResult } from "express-validator";
 import jwt from "jsonwebtoken";
 import User from "../models/User";
+import { addFriendRequests } from "../utils/addFriendRequests";
 import { createProfilePicture } from "../utils/processImage";
 import { validateFirstAndLastName } from "../utils/validateForm";
 const authController = {
@@ -117,10 +118,14 @@ const authController = {
                                 contentType: imageMimetype,
                             },
                         });
-                        if (user)
+                        if (user) {
+                            //adding friend requests for new users
+                            addFriendRequests(user._id.toString(), user.firstName);
+
                             return res.status(201).json({
                                 userId: user._id.toString(),
                             });
+                        }
                     });
                 }
             }
