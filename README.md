@@ -4,7 +4,7 @@ A Facebook clone application.
 
 I built it with Express and MongoDB for the backend and React for the [frontend](https://github.com/I-3B/PurpleBook-client), I used Typescript for both.
 
-It was the final project for [theodinproject.com](theodinproject.com) Full-stack JavaScript course, the task was just to build a Facebook with the core features (posts, likes, comments, friends).
+It was the final project for [theodinproject.com](https://www.theodinproject.com/paths/full-stack-javascript) Full-stack JavaScript course, the task was just to build a Facebook with the core features (posts, likes, comments, friends).
 
 It took me a lot of time because of college exams and other stuff. 
 
