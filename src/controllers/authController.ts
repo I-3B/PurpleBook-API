@@ -9,7 +9,12 @@ import { validateFirstAndLastName } from "../utils/validateForm";
 const authController = {
     login: [
         body("email").exists().isEmail().withMessage("Wrong email format.").escape(),
-        body("password").exists().escape(),
+        body("password")
+            .exists()
+            .trim()
+            .isLength({ min: 8, max: 32 })
+            .withMessage("password cannot be less than 8 or more then 32 characters.")
+            .escape(),
         async (req: Request, res: Response, next: NextFunction) => {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
@@ -24,16 +29,6 @@ const authController = {
                     { password: 1, email: 1, _id: 1, isAdmin: 1 }
                 );
                 if (user) {
-                    if (!user.password) {
-                        return res.status(400).json({
-                            error: {
-                                value: req.body.password,
-                                msg: "wrong password",
-                                param: "password",
-                                location: "body",
-                            },
-                        });
-                    }
                     bcrypt.compare(req.body.password, user.password, (err, result) => {
                         if (err) return next(err);
                         if (result) {
