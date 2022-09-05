@@ -6,8 +6,8 @@
     "scripts": {
         "dev": "ts-node-dev ./app.ts",
         "test": "jest --detectOpenHandles --runInBand --watchAll",
-        "start": "node dist/app.js",
-        "postinstall": "tsc && mv -i -v build dist/ && rm -v -rf src"
+        "build": "tsc && mv -i -v build dist/ && rm -v -rf src",
+        "start": "node dist/app.js"
     },
     "author": "",
     "license": "ISC",
