@@ -548,6 +548,44 @@ describe("users route", () => {
 
             expect(friendsAfter[0].friendState).toBe("FRIEND_REQUEST_SENT");
         });
+        test("skip and limit should work", async () => {
+            await signup("User", 201);
+            await signup("FriendOne", 201);
+            await signup("FriendTwo", 201);
+            await signup("FriendThree", 201);
+            await signup("FriendFour", 201);
+            await signup("FriendFive", 201);
+            const { userId: uId, token: uToken } = (await login("User", 200)).body;
+            const { userId: f1Id, token: f1Token } = (await login("FriendOne", 200)).body;
+            const { userId: f2Id, token: f2Token } = (await login("FriendTwo", 200)).body;
+            const { userId: f3Id, token: f3Token } = (await login("FriendThree", 200)).body;
+            const { userId: f4Id, token: f4Token } = (await login("FriendFour", 200)).body;
+            const { userId: f5Id, token: f5Token } = (await login("FriendFive", 200)).body;
+
+            await addFriendRequest(uId, f1Token, 200);
+            await addFriendRequest(uId, f2Token, 200);
+            await addFriendRequest(uId, f3Token, 200);
+            await addFriendRequest(uId, f4Token, 200);
+            await addFriendRequest(uId, f5Token, 200);
+            await acceptFriendRequest(uId, uToken, f1Id, 200);
+            await acceptFriendRequest(uId, uToken, f2Id, 200);
+            await acceptFriendRequest(uId, uToken, f3Id, 200);
+            await acceptFriendRequest(uId, uToken, f4Id, 200);
+            await acceptFriendRequest(uId, uToken, f5Id, 200);
+
+            const { friends } = (await getFriends(uId, uToken, 200, "limit=2&skip=2")).body;
+            expect(friends.length).toBe(2);
+            expect(friends).toContainEqual(
+                expect.objectContaining({
+                    firstName: "FriendThree",
+                })
+            );
+            expect(friends).toContainEqual(
+                expect.objectContaining({
+                    firstName: "FriendThree",
+                })
+            );
+        });
     });
     describe("deleteFriend", () => {
         test("should be able to unfriend another user", async () => {

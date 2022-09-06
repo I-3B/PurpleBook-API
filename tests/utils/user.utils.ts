@@ -89,9 +89,9 @@ const acceptFriendRequest = (userId: String, token: String, friendId: String, st
         .set("Authorization", `Bearer ${token}`)
         .expect(status);
 };
-const getFriends = (userId: String, token: String, status: Number) => {
+const getFriends = (userId: String, token: String, status: Number, query?: string) => {
     return request(app)
-        .get(`/api/users/${userId}/friends`)
+        .get(`/api/users/${userId}/friends?${query}`)
         .set("Authorization", `Bearer ${token}`)
         .expect(status);
 };

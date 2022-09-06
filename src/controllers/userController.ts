@@ -544,6 +544,8 @@ const userController = {
     },
 
     getFriends: async (req: Request, res: Response) => {
+        const { skip, limit } = req.query;
+        const { skipValue, limitValue } = parseQuery(limit as string, 10, skip as string);
         interface friendI {
             _id: string;
             friendState: string;
@@ -552,13 +554,39 @@ const userController = {
         interface query {
             friends: Array<friendI>;
         }
-        const { friends }: query = await User.findById(req.params.userId, {
-            friends: 1,
-        }).populate("friends", { _id: 1, firstName: 1, lastName: 1, imageMini: 1 });
+        const friends = await User.aggregate<friendI>([
+            { $match: { _id: new mongoose.Types.ObjectId(req.params.userId) } },
+            { $project: { _id: 0, friends: 1 } },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "friends",
+                    foreignField: "_id",
+                    as: "friends",
+                    pipeline: [
+                        {
+                            $project: {
+                                id_: 1,
+                                imageMini: 1,
+                                firstName: 1,
+                                lastName: 1,
+                            },
+                        },
+                    ],
+                },
+            },
+            { $unwind: "$friends" },
+            {
+                $replaceRoot: {
+                    newRoot: "$friends",
+                },
+            },
+            { $limit: skipValue + limitValue },
+            { $skip: skipValue },
+        ]);
         const map = async (friend: friendI, done: (arg0: null, arg1: friendI) => void) => {
             const friendState = await getFriendState(req.user?.id || "", friend._id);
-
-            done(null, { ...friend._doc, friendState });
+            done(null, { ...friend, friendState });
         };
 
         const friendsWithState = await async.map(friends, map);
