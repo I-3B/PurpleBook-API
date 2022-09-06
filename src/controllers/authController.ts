@@ -41,23 +41,27 @@ const authController = {
                             });
                         } else {
                             return res.status(400).json({
-                                error: {
-                                    value: req.body.password,
-                                    msg: "wrong password",
-                                    param: "password",
-                                    location: "body",
-                                },
+                                errors: [
+                                    {
+                                        value: req.body.password,
+                                        msg: "wrong password",
+                                        param: "password",
+                                        location: "body",
+                                    },
+                                ],
                             });
                         }
                     });
                 } else {
                     return res.status(404).json({
-                        error: {
-                            value: req.body.email,
-                            msg: "User not found",
-                            param: "email",
-                            location: "body",
-                        },
+                        errors: [
+                            {
+                                value: req.body.email,
+                                msg: "User not found",
+                                param: "email",
+                                location: "body",
+                            },
+                        ],
                     });
                 }
             }
