@@ -6,7 +6,7 @@
     "scripts": {
         "dev": "ts-node-dev ./app.ts",
         "test": "jest --detectOpenHandles --runInBand --watchAll",
-        "build": "tsc && mv -i -v build dist/ && rm -v -rf src",
+        "build": "tsc && cp -r build dist/ && rm -r build  && rm -v -rf src",
         "start": "node dist/app.js"
     },
     "author": "",
