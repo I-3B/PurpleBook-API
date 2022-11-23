@@ -11,8 +11,9 @@ const notificationController = {
             { updatedAt: 0, userId: 0 }
         )
             .sort({ createdAt: -1 })
-            .skip(skipValue)
-            .limit(limitValue);
+            .limit(skipValue + limitValue)
+            .skip(skipValue);
+            
         return res.status(200).json({ notifications });
     },
     setNotificationsAsViewed: async (req: Request, res: Response) => {
