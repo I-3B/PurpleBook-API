@@ -28,30 +28,33 @@ app.use(cookieParser());
 app.use(passport.initialize());
 app.use(express.static(path.join(__dirname, "build")));
 app.use("/api", authenticateRoute, APIRouter);
+app.use("/.well-known/assetlinks.json", function (req, res) {
+  res.sendFile(path.join(__dirname, "build", "assetlinks.json"));
+});
 app.get("*", function (req, res) {
-    res.sendFile(path.join(__dirname, "build", "index.html"));
+  res.sendFile(path.join(__dirname, "build", "index.html"));
 });
 app.use((req, res, next) => {
-    next(createError(404));
+  next(createError(404));
 });
 
 // error handler
 app.use((err: { message: any; status: any }, req: Request, res: Response, next: NextFunction) => {
-    // set locals, only providing error in development
-    res.locals.message = err.message;
-    res.locals.error = req.app.get("env") === "development" ? err : {};
-    res.status(err.status || 500);
-    console.log(err);
-    res.json(err);
+  // set locals, only providing error in development
+  res.locals.message = err.message;
+  res.locals.error = req.app.get("env") === "development" ? err : {};
+  res.status(err.status || 500);
+  console.log(err);
+  res.json(err);
 });
 if (process.env.NODE_ENV != "test") {
-    try {
-        app.listen(process.env.PORT || 8080, () => {
-            console.log(process.env.PORT || 8080);
-            if (process.env.NODE_ENV === "development") populateDB();
-        });
-    } catch (error: any) {
-        console.error(`Error occurred: ${error.message}`);
-    }
+  try {
+    app.listen(process.env.PORT || 8080, () => {
+      console.log(process.env.PORT || 8080);
+      if (process.env.NODE_ENV === "development") populateDB();
+    });
+  } catch (error: any) {
+    console.error(`Error occurred: ${error.message}`);
+  }
 }
 export default app;

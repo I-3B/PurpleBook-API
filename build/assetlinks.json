@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.example.purplebook",
+      "sha256_cert_fingerprints": [
+        "7D:A8:6E:6C:26:23:0D:9B:BB:25:7B:44:88:ED:34:23:69:22:52:7A:74:99:2B:A9:F3:80:A8:9D:95:78:79:02"
+      ]
+    }
+  }
+]
