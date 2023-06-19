@@ -12,14 +12,14 @@ It took me a lot of time because of college exams and other stuff.
 
 I learned a lot in this project, those are some points:
 ### for the backend:
-- first time using Typescript for backend, it helped a lot and I will never use untyped JavaScript again
-- first time I write tests for an API (around 200 test) and I think I will never write an API without tests in the future
+- first time using Typescript for backend, it helped a lot and I will never go back to untyped JavaScript again
+- first time I write tests for an API (around 200 test)
 - I used Oauth2 (login with Facebook)
 - I got better in writing MongoDB queries (friend recommendation was kind of challenging) 
-- I made custom middlewares for authorization   
+- I made custom middlewares for authorization and user roles   
 ### for the frontend:
-- I tried to make components reusable as often as I can (cards, buttons, a hook for paged lists) 
-- I used SCSS features (extending classes, variables, partials) 
-- I used useRef hook for passing data between components  I wrote many Typescripts interfaces and It benefited me a good deal 
+- I tried to make reusable components  as much as I can (cards, buttons, a hook for pagination) 
+- I used some SCSS features (extending classes, variables, partials) 
+- I wrote many Typescripts interfaces and It benefited me a good deal 
 
  that's it, I guess!
